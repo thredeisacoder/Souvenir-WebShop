@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Chi tiết khuyến mãi - The Souvenir</title>
+    <style>
+        .promotion-details {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+        
+        .promotion-header {
+            background-color: #0e7c7b;
+            padding: 30px;
+            color: white;
+            position: relative;
+        }
+        
+        .promotion-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .promotion-period {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .promotion-status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: white;
+        }
+        
+        .status-active {
+            color: #2e7d32;
+        }
+        
+        .status-upcoming {
+            color: #1976d2;
+        }
+        
+        .status-ended {
+            color: #d32f2f;
+        }
+        
+        .status-disabled {
+            color: #757575;
+        }
+        
+        .promotion-body {
+            padding: 30px;
+        }
+        
+        .promotion-description {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .promotion-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .discount-info {
+            background-color: #f8f9fa;
+            border: 1px dashed #0e7c7b;
+            padding: 20px;
+            border-radius: 10px;
+            color: #0e7c7b;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .promo-code-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .promo-code {
+            background-color: #f8f9fa;
+            border: 1px dashed #ddd;
+            padding: 12px 20px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: center;
+            border-radius: 5px 0 0 5px;
+        }
+        
+        .copy-btn {
+            background-color: #0e7c7b;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 0 5px 5px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background-color: #085b5a;
+        }
+        
+        .copy-btn i {
+            margin-right: 5px;
+        }
+        
+        .terms-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .terms-list li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .terms-list li:before {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: #0e7c7b;
+        }
+        
+        .product-list {
+            margin-top: 20px;
+        }
+        
+        .product-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-name {
+            flex-grow: 1;
+            font-weight: 600;
+        }
+        
+        .product-discount {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .promotion-cta {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-shop-now {
+            display: inline-block;
+            background-color: #0e7c7b;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-shop-now:hover {
+            background-color: #085b5a;
+            transform: translateY(-2px);
+        }
+        
+        .btn-back {
+            display: inline-block;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: 600;
+            text-decoration: none;
+            margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background-color: #e9ecef;
+        }
+        
+        .countdown-container {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .countdown-label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        
+        .countdown-timer {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .countdown-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .countdown-value {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #0e7c7b;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            min-width: 60px;
+            display: inline-block;
+        }
+        
+        .countdown-unit {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 767px) {
+            .promotion-header {
+                padding: 20px;
+                text-align: center;
+            }
+            
+            .promotion-title {
+                font-size: 1.5rem;
+            }
+            
+            .countdown-value {
+                font-size: 1.2rem;
+                min-width: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container py-5">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a href="/promotions">Khuyến mãi</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${promotion.title}"></li>
+                </ol>
+            </nav>
+            
+            <!-- Main Promotion Details -->
+            <div class="promotion-details">
+                <!-- Promotion Header -->
+                <div class="promotion-header">
+                    <h1 class="promotion-title" th:text="${promotion.title}"></h1>
+                    
+                    <div class="promotion-period">
+                        <i class="far fa-calendar-alt"></i> 
+                        <span th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}"></span> - 
+                        <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"></span>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div th:if="${promotion.status == 'ACTIVE' && promotion.startDate <= today && promotion.endDate >= today}" 
+                         class="promotion-status-badge status-active">
+                        <i class="fas fa-check-circle"></i> Đang diễn ra
+                    </div>
+                    
+                    <div th:if="${promotion.status == 'ACTIVE' && promotion.startDate > today}" 
+                         class="promotion-status-badge status-upcoming">
+                        <i class="fas fa-clock"></i> Sắp diễn ra
+                    </div>
+                    
+                    <div th:if="${promotion.status == 'ACTIVE' && promotion.endDate < today}" 
+                         class="promotion-status-badge status-ended">
+                        <i class="fas fa-times-circle"></i> Đã kết thúc
+                    </div>
+                    
+                    <div th:if="${promotion.status != 'ACTIVE'}" 
+                         class="promotion-status-badge status-disabled">
+                        <i class="fas fa-ban"></i> Không khả dụng
+                    </div>
+                    
+                    <!-- Countdown Timer for Active or Upcoming Promotions -->
+                    <div th:if="${(promotion.status == 'ACTIVE' && promotion.endDate >= today) || (promotion.status == 'ACTIVE' && promotion.startDate > today)}" 
+                         class="countdown-container">
+                        
+                        <div th:if="${promotion.status == 'ACTIVE' && promotion.startDate > today}" class="countdown-label">
+                            Thời gian bắt đầu:
+                        </div>
+                        
+                        <div th:if="${promotion.status == 'ACTIVE' && promotion.endDate >= today && promotion.startDate <= today}" class="countdown-label">
+                            Thời gian còn lại:
+                        </div>
+                        
+                        <div class="countdown-timer">
+                            <div class="countdown-item">
+                                <div class="countdown-value" id="days">--</div>
+                                <div class="countdown-unit">Ngày</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-value" id="hours">--</div>
+                                <div class="countdown-unit">Giờ</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-value" id="minutes">--</div>
+                                <div class="countdown-unit">Phút</div>
+                            </div>
+                            <div class="countdown-item">
+                                <div class="countdown-value" id="seconds">--</div>
+                                <div class="countdown-unit">Giây</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Promotion Body -->
+                <div class="promotion-body">
+                    <!-- Description -->
+                    <div class="promotion-description" th:text="${promotion.description}"></div>
+                    
+                    <!-- Discount Information -->
+                    <div class="discount-info">
+                        <span th:if="${promotion.discountType == 'PERCENTAGE'}">
+                            Giảm <span th:text="${promotion.discountValue}"></span>% 
+                        </span>
+                        <span th:if="${promotion.discountType == 'FIXED_AMOUNT'}">
+                            Giảm <span th:text="${#numbers.formatDecimal(promotion.discountValue, 0, 'COMMA', 0, 'POINT')}"></span>đ 
+                        </span>
+                        <span th:if="${promotion.minimumOrderAmount > 0}">
+                            khi mua từ <span th:text="${#numbers.formatDecimal(promotion.minimumOrderAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                        </span>
+                    </div>
+                    
+                    <!-- Promo Code -->
+                    <div th:if="${promotion.promoCode != null && !promotion.promoCode.isEmpty()}" class="promotion-section">
+                        <h2 class="section-title">Mã khuyến mãi</h2>
+                        <div class="promo-code-container">
+                            <div class="promo-code" th:text="${promotion.promoCode}"></div>
+                            <button class="copy-btn" th:attr="data-code=${promotion.promoCode}" onclick="copyPromoCode(this)">
+                                <i class="far fa-copy"></i> Sao chép
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Terms and Conditions -->
+                    <div class="promotion-section">
+                        <h2 class="section-title">Điều kiện áp dụng</h2>
+                        <ul class="terms-list">
+                            <li th:if="${promotion.minimumOrderAmount > 0}">
+                                Áp dụng cho đơn hàng từ <span th:text="${#numbers.formatDecimal(promotion.minimumOrderAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                            </li>
+                            <li th:if="${promotion.usageLimitPerCustomer > 0}">
+                                Mỗi khách hàng chỉ được sử dụng tối đa <span th:text="${promotion.usageLimitPerCustomer}"></span> lần
+                            </li>
+                            <li th:if="${promotion.startDate != null && promotion.endDate != null}">
+                                Thời gian áp dụng: <span th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}"></span> đến <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"></span>
+                            </li>
+                            <li>Không áp dụng cùng các chương trình khuyến mãi khác</li>
+                            <li>The Souvenir có quyền thay đổi điều khoản mà không cần báo trước</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Products with this Promotion -->
+                    <div class="promotion-section" th:if="${!#lists.isEmpty(productPromotions)}">
+                        <h2 class="section-title">Sản phẩm áp dụng</h2>
+                        <div class="product-list">
+                            <div class="product-item" th:each="productPromotion : ${productPromotions}">
+                                <div class="product-name">
+                                    <a th:href="@{/products/{id}(id=${productPromotion.productId})}" th:text="${productNames.get(productPromotion.productId)}"></a>
+                                </div>
+                                <div class="product-discount">
+                                    <span th:if="${productPromotion.discountType == 'PERCENTAGE'}">
+                                        Giảm <span th:text="${productPromotion.discountValue}"></span>%
+                                    </span>
+                                    <span th:if="${productPromotion.discountType == 'FIXED_AMOUNT'}">
+                                        Giảm <span th:text="${#numbers.formatDecimal(productPromotion.discountValue, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Call to Action -->
+                    <div class="promotion-cta">
+                        <a href="/promotions" class="btn-back">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        <a href="/products" class="btn-shop-now">
+                            <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script th:inline="javascript">
+            // Countdown Timer
+            function updateCountdown() {
+                const now = new Date().getTime();
+                
+                // Get target date from Thymeleaf
+                const isUpcoming = [[${promotion.status == 'ACTIVE' && promotion.startDate > today}]];
+                const targetDateStr = isUpcoming 
+                    ? [[${#temporals.format(promotion.startDate, "yyyy-MM-dd")}]] 
+                    : [[${#temporals.format(promotion.endDate, "yyyy-MM-dd")}]];
+                    
+                const targetDate = new Date(targetDateStr + "T23:59:59").getTime();
+                
+                const distance = targetDate - now;
+                
+                if (distance < 0) {
+                    document.getElementById("days").innerHTML = "00";
+                    document.getElementById("hours").innerHTML = "00";
+                    document.getElementById("minutes").innerHTML = "00";
+                    document.getElementById("seconds").innerHTML = "00";
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById("days").innerHTML = days < 10 ? "0" + days : days;
+                document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
+                document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+            }
+            
+            // Copy Promo Code
+            function copyPromoCode(button) {
+                const code = button.getAttribute('data-code');
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> Đã sao chép';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+            
+            // Initialize countdown
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.getElementById("days")) {
+                    updateCountdown();
+                    setInterval(updateCountdown, 1000);
+                }
+            });
+        </script>
+    </main>
+</body>
+</html>

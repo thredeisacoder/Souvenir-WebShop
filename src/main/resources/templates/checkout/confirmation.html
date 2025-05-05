@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Xác nhận đơn hàng - Thanh toán</title>
+    <style>
+        .checkout-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .checkout-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .checkout-steps:before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .step {
+            position: relative;
+            z-index: 2;
+            background-color: #fff;
+            padding: 0 10px;
+            text-align: center;
+        }
+        
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+        }
+        
+        .step.active .step-icon {
+            background-color: #0e7c7b;
+            color: #fff;
+        }
+        
+        .step.completed .step-icon {
+            background-color: #28a745;
+            color: #fff;
+        }
+        
+        .step-title {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .step.active .step-title {
+            color: #0e7c7b;
+            font-weight: 600;
+        }
+        
+        .step.completed .step-title {
+            color: #28a745;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .checkout-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .checkout-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .order-summary-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .order-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .order-summary-label {
+            color: #666;
+        }
+        
+        .order-summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .order-summary-total-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .order-summary-total-value {
+            font-weight: 700;
+            color: #0e7c7b;
+            font-size: 1.2rem;
+        }
+        
+        .preview-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-content {
+            color: #666;
+        }
+        
+        .preview-action {
+            color: #0e7c7b;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .preview-action:hover {
+            text-decoration: underline;
+        }
+        
+        .payment-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #0e7c7b;
+        }
+        
+        .product-list {
+            margin-top: 20px;
+        }
+        
+        .product-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .product-image {
+            width: 80px;
+            height: 80px;
+            margin-right: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .product-details {
+            flex-grow: 1;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .product-price {
+            color: #666;
+        }
+        
+        .product-quantity {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .product-total {
+            text-align: right;
+            font-weight: 600;
+            color: #333;
+            width: 120px;
+        }
+        
+        .terms-checkbox {
+            margin-top: 20px;
+        }
+        
+        .order-note {
+            margin-top: 20px;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f8fff8;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        
+        .success-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .success-message p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .order-id {
+            background-color: #f8f9fa;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Thanh toán</h1>
+                        <p>Xác nhận và hoàn tất đơn hàng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="checkout-container">
+                <!-- Checkout Steps -->
+                <div class="checkout-steps">
+                    <div class="step completed">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-title">Địa chỉ</div>
+                    </div>
+                    <div class="step completed">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-title">Vận chuyển</div>
+                    </div>
+                    <div class="step completed">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-title">Thanh toán</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-icon">4</div>
+                        <div class="step-title">Xác nhận</div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- If order is placed successfully -->
+                <div th:if="${orderPlaced}" class="success-message">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="success-title">Đặt hàng thành công!</h2>
+                    <p>Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.</p>
+                    <div class="order-id" th:text="${'Mã đơn hàng: ' + orderId}">Mã đơn hàng: ORD123456</div>
+                    <p>Chúng tôi đã gửi email xác nhận đến địa chỉ email của bạn. Bạn cũng có thể theo dõi đơn hàng trong trang Tài khoản.</p>
+                    <div class="mt-4">
+                        <a th:href="@{/products}" class="btn btn-outline-primary me-2">Tiếp tục mua sắm</a>
+                        <a th:href="@{'/account/orders/' + ${orderId}}" class="btn btn-primary">Xem chi tiết đơn hàng</a>
+                    </div>
+                </div>
+                
+                <!-- Order confirmation form -->
+                <form th:unless="${orderPlaced}" id="confirmOrderForm" th:action="@{/checkout/confirm}" method="post">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <!-- Selected Address Preview -->
+                            <div class="preview-section">
+                                <div class="preview-title">
+                                    Địa chỉ giao hàng
+                                    <a th:href="@{/checkout/address}" class="preview-action">Thay đổi</a>
+                                </div>
+                                <div class="preview-content">
+                                    <div th:text="${customer.fullName}">Họ tên người nhận</div>
+                                    <div th:text="${shippingAddress.addressLine}">123 Đường Láng</div>
+                                    <div th:text="${shippingAddress.city + ', ' + shippingAddress.country}">Hà Nội, Việt Nam</div>
+                                    <div th:if="${shippingAddress.zipCode}" th:text="${'Mã bưu điện: ' + shippingAddress.zipCode}">Mã bưu điện: 100000</div>
+                                </div>
+                            </div>
+
+                            <!-- Selected Shipping Method Preview -->
+                            <div class="preview-section">
+                                <div class="preview-title">
+                                    Phương thức vận chuyển
+                                    <a th:href="@{/checkout/shipping}" class="preview-action">Thay đổi</a>
+                                </div>
+                                <div class="preview-content" th:if="${shippingMethod != null}">
+                                    <div class="d-flex justify-content-between">
+                                        <span th:text="${shippingMethod.name + ' (' + shippingMethod.estimatedDeliveryTime + ')'}">
+                                            Giao hàng tiêu chuẩn (2-3 ngày làm việc)
+                                        </span>
+                                        <span th:text="${#numbers.formatDecimal(shippingMethod.price, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                            30.000 VNĐ
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selected Payment Method Preview -->
+                            <div class="preview-section">
+                                <div class="preview-title">
+                                    Phương thức thanh toán
+                                    <a th:href="@{/checkout/payment}" class="preview-action">Thay đổi</a>
+                                </div>
+                                <div class="preview-content" th:if="${paymentMethod != null}">
+                                    <div th:if="${paymentMethod.id == 'cod'}" class="d-flex align-items-center">
+                                        <i class="fas fa-money-bill-wave payment-icon"></i>
+                                        <span>Thanh toán khi nhận hàng (COD)</span>
+                                    </div>
+                                    <div th:if="${paymentMethod.id == 'bank'}" class="d-flex align-items-center">
+                                        <i class="fas fa-university payment-icon"></i>
+                                        <span>Chuyển khoản ngân hàng</span>
+                                    </div>
+                                    <div th:if="${paymentMethod.id == 'credit'}" class="d-flex align-items-center">
+                                        <i class="far fa-credit-card payment-icon"></i>
+                                        <span>Thẻ tín dụng/Ghi nợ</span>
+                                    </div>
+                                    <div th:if="${paymentMethod.id == 'momo'}" class="d-flex align-items-center">
+                                        <i class="fas fa-wallet payment-icon"></i>
+                                        <span>Ví điện tử MoMo</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Product List -->
+                            <div class="checkout-section">
+                                <h3 class="checkout-section-title">Sản phẩm trong đơn hàng</h3>
+                                
+                                <div class="product-list">
+                                    <div th:each="item : ${cartItems}" class="product-item">
+                                        <div class="product-image">
+                                            <img th:if="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
+                                                 th:src="${item.product.productDetails[0].imageUrl}" 
+                                                 alt="Product Image">
+                                            <img th:unless="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
+                                                 th:src="@{/assets/images/product-placeholder.jpg}" 
+                                                 alt="Product Image">
+                                        </div>
+                                        <div class="product-details">
+                                            <div class="product-name" th:text="${item.product.productName}">Tên sản phẩm</div>
+                                            <div class="product-price" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">100.000 VNĐ</div>
+                                            <div class="product-quantity" th:text="${'Số lượng: ' + item.quantity}">Số lượng: 2</div>
+                                        </div>
+                                        <div class="product-total" th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                            200.000 VNĐ
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order Note -->
+                            <div class="order-note">
+                                <label for="orderNote" class="form-label">Ghi chú đơn hàng (tùy chọn)</label>
+                                <textarea class="form-control" id="orderNote" name="orderNote" rows="3" placeholder="Thông tin bổ sung về đơn hàng, yêu cầu đặc biệt..."></textarea>
+                            </div>
+
+                            <!-- Terms and Conditions -->
+                            <div class="terms-checkbox mt-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="termsAccepted" name="termsAccepted" required>
+                                    <label class="form-check-label" for="termsAccepted">
+                                        Tôi đã đọc và đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">điều khoản dịch vụ</a> và <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">chính sách bảo mật</a>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons -->
+                            <div class="checkout-navigation">
+                                <a th:href="@{/checkout/payment}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="placeOrderButton">
+                                    Đặt hàng
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            <!-- Order Summary -->
+                            <div class="order-summary">
+                                <h3 class="order-summary-title">Thông tin đơn hàng</h3>
+                                
+                                <div class="order-summary-item">
+                                    <span class="order-summary-label">Tổng tiền hàng</span>
+                                    <span class="order-summary-value" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                        500.000 VNĐ
+                                    </span>
+                                </div>
+                                
+                                <div class="order-summary-item" th:if="${discount > 0}">
+                                    <span class="order-summary-label">Giảm giá</span>
+                                    <span class="order-summary-value" th:text="${#numbers.formatDecimal(discount, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                        -50.000 VNĐ
+                                    </span>
+                                </div>
+                                
+                                <div class="order-summary-item" th:if="${shippingCost != null}">
+                                    <span class="order-summary-label">Phí vận chuyển</span>
+                                    <span class="order-summary-value" th:text="${#numbers.formatDecimal(shippingCost, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                        30.000 VNĐ
+                                    </span>
+                                </div>
+                                
+                                <div class="order-summary-total">
+                                    <span class="order-summary-total-label">Tổng thanh toán</span>
+                                    <span class="order-summary-total-value" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                        480.000 VNĐ
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Terms and Conditions Modal -->
+        <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="termsModalLabel">Điều khoản dịch vụ</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>1. Chấp nhận điều khoản</h5>
+                        <p>Bằng cách sử dụng dịch vụ của chúng tôi, bạn đồng ý với các điều khoản này. Vui lòng đọc kỹ.</p>
+                        
+                        <h5>2. Thông tin tài khoản</h5>
+                        <p>Bạn chịu trách nhiệm về việc bảo mật thông tin tài khoản của mình và tất cả các hoạt động diễn ra dưới tài khoản của bạn.</p>
+                        
+                        <h5>3. Sản phẩm và đơn hàng</h5>
+                        <p>Chúng tôi cố gắng hiển thị chính xác màu sắc và hình ảnh sản phẩm trên trang web, tuy nhiên không thể đảm bảo màn hình máy tính của bạn sẽ hiển thị chính xác.</p>
+                        <p>Chúng tôi có quyền từ chối hoặc hủy bất kỳ đơn đặt hàng nào vì bất kỳ lý do gì vào bất kỳ lúc nào.</p>
+                        
+                        <h5>4. Vận chuyển và giao hàng</h5>
+                        <p>Thời gian giao hàng có thể thay đổi tùy thuộc vào vị trí và tình trạng của đơn hàng. Chúng tôi không chịu trách nhiệm về sự chậm trễ do bên thứ ba cung cấp dịch vụ vận chuyển.</p>
+                        
+                        <h5>5. Chính sách hoàn trả và đổi hàng</h5>
+                        <p>Hàng hóa có thể được hoàn trả trong vòng 7 ngày kể từ ngày nhận hàng với điều kiện hàng hóa còn nguyên trạng.</p>
+                        
+                        <h5>6. Quyền sở hữu trí tuệ</h5>
+                        <p>Tất cả nội dung trên trang web của chúng tôi bao gồm văn bản, hình ảnh, thiết kế đồ họa, logo, biểu tượng, và phần mềm đều thuộc quyền sở hữu của chúng tôi.</p>
+                        
+                        <h5>7. Thay đổi điều khoản</h5>
+                        <p>Chúng tôi có quyền thay đổi các điều khoản này vào bất kỳ lúc nào. Việc bạn tiếp tục sử dụng dịch vụ của chúng tôi sau khi thay đổi được đăng lên đồng nghĩa với việc bạn chấp nhận những thay đổi đó.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Privacy Policy Modal -->
+        <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="privacyModalLabel">Chính sách bảo mật</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>1. Thông tin chúng tôi thu thập</h5>
+                        <p>Chúng tôi thu thập thông tin cá nhân như tên, địa chỉ email, địa chỉ giao hàng, số điện thoại và thông tin thanh toán khi bạn thực hiện đơn hàng.</p>
+                        
+                        <h5>2. Cách chúng tôi sử dụng thông tin</h5>
+                        <p>Chúng tôi sử dụng thông tin để xử lý đơn hàng, quản lý tài khoản của bạn, gửi email về đơn hàng, và cải thiện dịch vụ của chúng tôi.</p>
+                        
+                        <h5>3. Bảo mật thông tin</h5>
+                        <p>Chúng tôi thực hiện các biện pháp bảo mật hợp lý để bảo vệ thông tin cá nhân của bạn khỏi mất mát, truy cập trái phép, tiết lộ, thay đổi hoặc phá hủy.</p>
+                        
+                        <h5>4. Chia sẻ thông tin</h5>
+                        <p>Chúng tôi không bán, trao đổi, hoặc chuyển giao thông tin cá nhân của bạn cho bên thứ ba. Điều này không bao gồm các bên thứ ba đáng tin cậy hỗ trợ chúng tôi trong việc vận hành trang web, thực hiện kinh doanh, hoặc phục vụ bạn, miễn là các bên đồng ý giữ bí mật thông tin này.</p>
+                        
+                        <h5>5. Cookie</h5>
+                        <p>Chúng tôi sử dụng cookie để cải thiện trải nghiệm của bạn trên trang web của chúng tôi. Cookie là các tệp nhỏ mà một trang web hoặc nhà cung cấp dịch vụ chuyển vào ổ cứng máy tính của bạn thông qua trình duyệt web (nếu bạn cho phép).</p>
+                        
+                        <h5>6. Thay đổi chính sách bảo mật</h5>
+                        <p>Chúng tôi có thể cập nhật chính sách bảo mật này vào bất kỳ lúc nào. Chúng tôi sẽ thông báo cho bạn về bất kỳ thay đổi nào bằng cách đăng chính sách mới trên trang này.</p>
+                        
+                        <h5>7. Liên hệ</h5>
+                        <p>Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật này, vui lòng liên hệ với chúng tôi qua địa chỉ email: contact@thesourvenir.com</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block layout:fragment="script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Validate terms acceptance before submission
+                const confirmOrderForm = document.getElementById('confirmOrderForm');
+                if (confirmOrderForm) {
+                    confirmOrderForm.addEventListener('submit', function(event) {
+                        const termsAccepted = document.getElementById('termsAccepted');
+                        if (!termsAccepted.checked) {
+                            event.preventDefault();
+                            alert('Vui lòng đồng ý với điều khoản dịch vụ và chính sách bảo mật để tiếp tục.');
+                        }
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html>

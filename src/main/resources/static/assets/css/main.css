@@ -1,0 +1,38 @@
+body {
+  font-family: 'Roboto', 'Noto Sans', sans-serif;
+}
+
+.product-card {
+  transition: transform 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.hero-section {
+  background-color: #f8f9fa;
+  padding: 4rem 0;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.category-card {
+  transition: transform 0.3s;
+}
+.category-card:hover {
+  transform: translateY(-5px);
+}
+
+.promotion-card {
+  border-left: 4px solid #0d6efd;
+}
+
+footer a {
+  text-decoration: none;
+}
+footer a:hover {
+  text-decoration: underline;
+}
+
+/*# sourceMappingURL=main.css.map */

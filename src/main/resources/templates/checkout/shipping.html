@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Phương thức vận chuyển - Thanh toán</title>
+    <style>
+        .checkout-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .checkout-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .checkout-steps:before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .step {
+            position: relative;
+            z-index: 2;
+            background-color: #fff;
+            padding: 0 10px;
+            text-align: center;
+        }
+        
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+        }
+        
+        .step.active .step-icon {
+            background-color: #0e7c7b;
+            color: #fff;
+        }
+        
+        .step.completed .step-icon {
+            background-color: #28a745;
+            color: #fff;
+        }
+        
+        .step-title {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .step.active .step-title {
+            color: #0e7c7b;
+            font-weight: 600;
+        }
+        
+        .step.completed .step-title {
+            color: #28a745;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .checkout-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .checkout-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .shipping-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .shipping-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .shipping-card.selected {
+            border: 2px solid #0e7c7b;
+        }
+        
+        .shipping-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .shipping-radio {
+            margin-right: 15px;
+        }
+        
+        .shipping-details {
+            flex-grow: 1;
+        }
+        
+        .shipping-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        
+        .shipping-description {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .shipping-time {
+            color: #0e7c7b;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .shipping-price {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+        
+        .selected-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #28a745;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .order-summary-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .order-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .order-summary-label {
+            color: #666;
+        }
+        
+        .order-summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .order-summary-total-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .order-summary-total-value {
+            font-weight: 700;
+            color: #0e7c7b;
+            font-size: 1.2rem;
+        }
+        
+        .address-preview {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .address-preview-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .address-preview-content {
+            color: #666;
+        }
+        
+        .address-preview-action {
+            color: #0e7c7b;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .address-preview-action:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Thanh toán</h1>
+                        <p>Vui lòng hoàn tất thông tin mua hàng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="checkout-container">
+                <!-- Checkout Steps -->
+                <div class="checkout-steps">
+                    <div class="step completed">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-title">Địa chỉ</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-icon">2</div>
+                        <div class="step-title">Vận chuyển</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <div class="step-title">Thanh toán</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">4</div>
+                        <div class="step-title">Xác nhận</div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <!-- Selected Address Preview -->
+                        <div class="address-preview">
+                            <div class="address-preview-title">
+                                Địa chỉ giao hàng
+                                <a th:href="@{/checkout/address}" class="address-preview-action">Thay đổi</a>
+                            </div>
+                            <div class="address-preview-content">
+                                <div th:text="${customer.fullName}">Họ tên người nhận</div>
+                                <div th:text="${shippingAddress.addressLine}">123 Đường Láng</div>
+                                <div th:text="${shippingAddress.city + ', ' + shippingAddress.country}">Hà Nội, Việt Nam</div>
+                                <div th:if="${shippingAddress.zipCode}" th:text="${'Mã bưu điện: ' + shippingAddress.zipCode}">Mã bưu điện: 100000</div>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Method Selection -->
+                        <div class="checkout-section">
+                            <h3 class="checkout-section-title">Phương thức vận chuyển</h3>
+                            
+                            <form id="shippingMethodForm" th:action="@{/checkout/select-shipping}" method="post">
+                                <input type="hidden" id="selectedShippingMethod" name="shippingMethodId" value="">
+                                
+                                <!-- Shipping Method Options -->
+                                <div th:each="method, iterStat : ${shippingMethods}">
+                                    <div th:id="'shipping-card-' + ${method.id}" 
+                                         th:class="${method.id == selectedShippingMethodId ? 'shipping-card selected' : 'shipping-card'}"
+                                         onclick="selectShippingMethod(this, [[${method.id}]])">
+                                        <span th:if="${method.id == selectedShippingMethodId}" class="selected-badge">Đã chọn</span>
+                                        <div class="shipping-option">
+                                            <div class="shipping-radio">
+                                                <input type="radio" th:id="'shipping-' + ${method.id}" name="shipping" th:value="${method.id}" 
+                                                       th:checked="${method.id == selectedShippingMethodId}" class="form-check-input">
+                                            </div>
+                                            <div class="shipping-details">
+                                                <div class="shipping-name" th:text="${method.name}">Giao hàng tiêu chuẩn</div>
+                                                <div class="shipping-description" th:text="${method.description}">Giao hàng đến địa chỉ của bạn</div>
+                                                <div class="shipping-time" th:text="${method.estimatedDeliveryTime}">2-3 ngày làm việc</div>
+                                            </div>
+                                            <div class="shipping-price" th:text="${#numbers.formatDecimal(method.price, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                                30.000 VNĐ
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- If no shipping methods available -->
+                                <div th:if="${#lists.isEmpty(shippingMethods)}" class="alert alert-warning">
+                                    Không có phương thức vận chuyển nào khả dụng cho địa chỉ này.
+                                </div>
+                                
+                                <!-- Navigation Buttons -->
+                                <div class="checkout-navigation">
+                                    <a th:href="@{/checkout/address}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="continueButton" th:disabled="${#lists.isEmpty(shippingMethods)}">
+                                        Tiếp tục<i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <!-- Order Summary -->
+                        <div class="order-summary">
+                            <h3 class="order-summary-title">Thông tin đơn hàng</h3>
+                            
+                            <div class="order-summary-item">
+                                <span class="order-summary-label">Tổng tiền hàng</span>
+                                <span class="order-summary-value" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                    500.000 VNĐ
+                                </span>
+                            </div>
+                            
+                            <div class="order-summary-item" th:if="${discount > 0}">
+                                <span class="order-summary-label">Giảm giá</span>
+                                <span class="order-summary-value" th:text="${#numbers.formatDecimal(discount, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                    -50.000 VNĐ
+                                </span>
+                            </div>
+                            
+                            <div class="order-summary-item" th:if="${shippingCost != null}">
+                                <span class="order-summary-label">Phí vận chuyển</span>
+                                <span class="order-summary-value" th:text="${#numbers.formatDecimal(shippingCost, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                    30.000 VNĐ
+                                </span>
+                            </div>
+                            
+                            <div class="order-summary-total">
+                                <span class="order-summary-total-label">Tổng thanh toán</span>
+                                <span class="order-summary-total-value" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                    480.000 VNĐ
+                                </span>
+                            </div>
+                            
+                            <!-- Items Preview -->
+                            <div class="mt-4">
+                                <p class="mb-2 fw-bold">Sản phẩm (<span th:text="${#lists.size(cartItems)}">3</span>)</p>
+                                <div th:each="item : ${cartItems}" class="d-flex mb-2 pb-2 border-bottom">
+                                    <div style="width: 50px; height: 50px;" class="me-2">
+                                        <img th:if="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
+                                             th:src="${item.product.productDetails[0].imageUrl}" 
+                                             class="img-fluid" alt="Product Image">
+                                        <img th:unless="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
+                                             th:src="@{/assets/images/product-placeholder.jpg}" 
+                                             class="img-fluid" alt="Product Image">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="text-truncate" style="max-width: 200px;" th:text="${item.product.productName}">
+                                            Tên sản phẩm dài có thể bị cắt
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <small th:text="${'SL: ' + item.quantity}">SL: 2</small>
+                                            <span class="small fw-bold" th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                                200.000 VNĐ
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            // Lấy giá trị từ Thymeleaf để tính toán
+            const subtotal = /*[[${subtotal}]]*/ 0;
+            let shippingPrices = {};
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Lấy thông tin giá của tất cả phương thức vận chuyển
+                document.querySelectorAll('.shipping-card').forEach(card => {
+                    const methodId = card.id.split('-').pop();
+                    const priceText = card.querySelector('.shipping-price').innerText;
+                    const price = parseFloat(priceText.replace(/[^\d]/g, ''));
+                    shippingPrices[methodId] = price;
+                    
+                    // Thêm event listener riêng cho mỗi phương thức vận chuyển
+                    card.addEventListener('click', function() {
+                        const id = this.id.split('-').pop();
+                        selectShippingMethod(this, id);
+                    });
+                });
+                
+                // Pre-select the shipping method that was previously selected (if any)
+                const selectedShippingMethodId = document.getElementById('selectedShippingMethod').value;
+                if (selectedShippingMethodId) {
+                    console.log("Selecting previously selected shipping method:", selectedShippingMethodId);
+                    const shippingCard = document.getElementById('shipping-card-' + selectedShippingMethodId);
+                    if (shippingCard) {
+                        selectShippingMethod(shippingCard, selectedShippingMethodId);
+                    }
+                }
+                
+                // Pre-select the first shipping method if none is selected
+                if (!selectedShippingMethodId || !document.querySelector('.shipping-card.selected')) {
+                    console.log("No shipping method selected, selecting the first one");
+                    const firstShippingMethod = document.querySelector('.shipping-card');
+                    if (firstShippingMethod) {
+                        const methodId = firstShippingMethod.id.split('-').pop();
+                        selectShippingMethod(firstShippingMethod, methodId);
+                    }
+                }
+            });
+            
+            // Function to select a shipping method
+            function selectShippingMethod(element, methodId) {
+                console.log("Selecting shipping method:", methodId);
+                
+                // Update radio button
+                const radioButton = document.getElementById('shipping-' + methodId);
+                if (radioButton) {
+                    radioButton.checked = true;
+                }
+                
+                // Remove selected class from all shipping cards
+                document.querySelectorAll('.shipping-card').forEach(card => {
+                    card.classList.remove('selected');
+                    
+                    // Remove selected badge if exists
+                    const selectedBadge = card.querySelector('.selected-badge');
+                    if (selectedBadge) {
+                        selectedBadge.remove();
+                    }
+                });
+                
+                // Add selected class to clicked card
+                element.classList.add('selected');
+                
+                // Add selected badge if it doesn't already have one
+                if (!element.querySelector('.selected-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'selected-badge';
+                    badge.textContent = 'Đã chọn';
+                    element.appendChild(badge);
+                }
+                
+                // Set the hidden input value
+                document.getElementById('selectedShippingMethod').value = methodId;
+                
+                // Enable continue button
+                document.getElementById('continueButton').disabled = false;
+                
+                // Cập nhật phí vận chuyển và tổng tiền
+                updateTotalWithShippingCost(methodId);
+            }
+            
+            // Hàm cập nhật tổng tiền khi chọn phương thức vận chuyển
+            function updateTotalWithShippingCost(methodId) {
+                // Lấy giá của phương thức vận chuyển được chọn
+                const shippingCost = shippingPrices[methodId] || 0;
+                
+                // Lấy giảm giá (nếu có)
+                let discount = 0;
+                const discountElement = document.querySelector('.order-summary-item:nth-child(2) .order-summary-value');
+                if (discountElement && discountElement.textContent.includes('-')) {
+                    const discountText = discountElement.textContent;
+                    discount = parseFloat(discountText.replace(/[^\d]/g, ''));
+                }
+                
+                // Tính tổng tiền mới
+                const total = subtotal - discount + shippingCost;
+                
+                // Cập nhật hiển thị phí vận chuyển
+                const shippingCostElement = document.querySelector('.order-summary-item:nth-child(3) .order-summary-value');
+                if (shippingCostElement) {
+                    shippingCostElement.textContent = formatCurrency(shippingCost) + ' VNĐ';
+                }
+                
+                // Cập nhật tổng tiền
+                const totalElement = document.querySelector('.order-summary-total-value');
+                if (totalElement) {
+                    totalElement.textContent = formatCurrency(total) + ' VNĐ';
+                }
+            }
+            
+            // Hàm định dạng số tiền
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('vi-VN').format(amount);
+            }
+        </script>
+    </th:block>
+</body>
+</html>

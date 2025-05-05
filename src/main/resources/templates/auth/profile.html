@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Thông tin tài khoản</title>
+    <!-- Sử dụng CSS từ file riêng thay vì CSS nội tuyến -->
+    <link th:href="@{/assets/css/profile.css}" rel="stylesheet">
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="profile-container">
+            <div class="container">
+                <!-- Thông báo thành công hoặc lỗi -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+                        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <div class="profile-header">
+                            <h1>Thông tin tài khoản</h1>
+                            <p class="text-muted">Quản lý thông tin cá nhân của bạn</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <div class="profile-nav">
+                            <ul class="nav nav-tabs border-0">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#profile-info" data-bs-toggle="tab">Thông tin cá nhân</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#change-password" data-bs-toggle="tab">Đổi mật khẩu</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" th:href="@{/account/orders}">Lịch sử đơn hàng</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Thông tin cá nhân -->
+                    <div class="tab-pane fade show active" id="profile-info">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="profile-section">
+                                    <div class="profile-section-header">
+                                        <h2>Thông tin cá nhân</h2>
+                                    </div>
+                                    
+                                    <div class="avatar-section">
+                                        <div class="avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="avatar-info">
+                                            <h3 th:text="${customer.fullName}">Nguyễn Văn A</h3>
+                                            <p th:text="${customer.email}">example@email.com</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <form th:action="@{/auth/profile/update}" method="post" th:object="${customer}">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="fullName">Họ và tên</label>
+                                                    <input type="text" class="form-control" id="fullName" name="fullName" th:field="*{fullName}" required>
+                                                    <small class="text-danger" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="email">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email" th:field="*{email}" required>
+                                                    <small class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="phoneNumber">Số điện thoại</label>
+                                                    <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" th:field="*{phoneNumber}" required>
+                                                    <small class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-end mt-4">
+                                            <button type="submit" class="btn btn-success">Cập nhật thông tin</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4">
+                                <div class="profile-section">
+                                    <div class="profile-section-header">
+                                        <h2>Địa chỉ giao hàng</h2>
+                                    </div>
+                                    
+                                    <div class="address-list">
+                                        <!-- Hiển thị khi không có địa chỉ -->
+                                        <div th:if="${addresses == null || #lists.isEmpty(addresses)}">
+                                            <p class="text-muted">Bạn chưa có địa chỉ giao hàng nào</p>
+                                        </div>
+                                        
+                                        <!-- Hiển thị địa chỉ mặc định -->
+                                        <div th:if="${addresses != null && !#lists.isEmpty(addresses)}" class="address-item mb-3" 
+                                             th:with="defaultAddress=${addresses.?[getIsDefault() == true]?.get(0)}">
+                                            <div th:if="${defaultAddress != null}" class="card border-success">
+                                                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                                    <strong>Địa chỉ mặc định</strong>
+                                                </div>
+                                                <div class="card-body">
+                                                    <h5 class="card-title" th:text="${customer.fullName}">Họ tên</h5>
+                                                    <p class="card-text" th:text="${defaultAddress.addressLine}">Địa chỉ</p>
+                                                    <p class="card-text" th:text="${defaultAddress.city + ', ' + defaultAddress.country}">Thành phố, Quốc gia</p>
+                                                    <p th:if="${defaultAddress.zipCode}" class="card-text" th:text="${'Mã bưu điện: ' + defaultAddress.zipCode}">Mã bưu điện</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Hiển thị thông báo nếu không có địa chỉ mặc định -->
+                                            <div th:if="${defaultAddress == null && !#lists.isEmpty(addresses)}" class="alert alert-info">
+                                                Bạn chưa thiết lập địa chỉ mặc định
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Hiển thị số địa chỉ khác (nếu có) -->
+                                        <div th:if="${addresses != null && !#lists.isEmpty(addresses) && addresses.size() > 1}" class="other-addresses">
+                                            <p class="text-muted">
+                                                <span th:text="${addresses.size() - 1}">0</span> địa chỉ khác
+                                            </p>
+                                        </div>
+                                        
+                                        <a href="/account/addresses" class="btn btn-outline-primary btn-sm mt-2">
+                                            <i class="fas fa-map-marker-alt"></i> Quản lý địa chỉ
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Đổi mật khẩu -->
+                    <div class="tab-pane fade" id="change-password">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="profile-section">
+                                    <div class="profile-section-header">
+                                        <h2>Đổi mật khẩu</h2>
+                                    </div>
+                                    
+                                    <div class="alert alert-danger" th:if="${passwordError}" th:text="${passwordError}"></div>
+                                    
+                                    <form th:action="@{/auth/profile/change-password}" method="post">
+                                        <div class="form-group">
+                                            <label for="currentPassword">Mật khẩu hiện tại</label>
+                                            <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="newPassword">Mật khẩu mới</label>
+                                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                                            <small class="text-muted">Mật khẩu phải có ít nhất 8 ký tự</small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                        </div>
+                                        
+                                        <div class="text-end mt-4">
+                                            <button type="submit" class="btn btn-success">Cập nhật mật khẩu</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-4">
+                                <div class="profile-section">
+                                    <div class="profile-section-header">
+                                        <h2>Bảo mật tài khoản</h2>
+                                    </div>
+                                    
+                                    <div class="security-tips">
+                                        <p><i class="fas fa-shield-alt text-primary me-2"></i> Đừng bao giờ chia sẻ mật khẩu của bạn cho người khác</p>
+                                        <p><i class="fas fa-fingerprint text-primary me-2"></i> Sử dụng mật khẩu mạnh với ký tự đặc biệt, chữ hoa và số</p>
+                                        <p><i class="fas fa-sync text-primary me-2"></i> Thay đổi mật khẩu định kỳ để bảo vệ tài khoản</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

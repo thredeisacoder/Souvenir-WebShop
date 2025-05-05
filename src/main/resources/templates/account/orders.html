@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Đơn hàng của tôi - The Souvenir</title>
+    <style>
+        .order-list-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .order-header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        
+        .order-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-nav {
+            margin-bottom: 30px;
+        }
+        
+        .order-nav .nav-link {
+            color: #666;
+            border-radius: 4px;
+            padding: 10px 15px;
+        }
+        
+        .order-nav .nav-link.active {
+            background-color: #0e7c7b;
+            color: white;
+        }
+        
+        .order-nav .nav-link:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+        
+        .order-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .order-id {
+            font-weight: 600;
+            color: #0e7c7b;
+            margin-bottom: 10px;
+        }
+        
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .order-items {
+            margin-bottom: 15px;
+        }
+        
+        .order-total {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-processing {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-shipped {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-cancelled {
+            background-color: #fbe9e7;
+            color: #d32f2f;
+        }
+        
+        .order-action .btn {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .empty-orders i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .empty-orders h4 {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Đơn hàng của tôi</h1>
+                        <p>Quản lý và theo dõi đơn hàng của bạn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="order-list-container">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Orders List -->
+                <div th:if="${#lists.isEmpty(orders)}" class="empty-orders">
+                    <div class="text-center">
+                        <i class="fas fa-shopping-bag"></i>
+                        <h4>Bạn chưa có đơn hàng nào</h4>
+                        <p>Hãy tiếp tục mua sắm và quay lại đây để xem đơn hàng của bạn</p>
+                        <a href="/products" class="btn btn-primary mt-3">Tiếp tục mua sắm</a>
+                    </div>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(orders)}">
+                    <div class="mb-4">
+                        <h5 class="mb-3">Danh sách đơn hàng</h5>
+                        
+                        <div class="order-card" th:each="order : ${orders}">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="order-id">
+                                        Đơn hàng #<span th:text="${order.orderId}">12345</span>
+                                    </div>
+                                    <div class="order-date">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2023 14:30</span>
+                                    </div>
+                                    <div class="order-total">
+                                        Tổng tiền: <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">500.000 VNĐ</span>
+                                    </div>
+                                    <div class="order-items">
+                                        <span th:text="${order.orderDetails != null ? order.orderDetails.size() + ' sản phẩm' : '0 sản phẩm'}">3 sản phẩm</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <div class="mb-3">
+                                        <span th:class="${'order-status ' + 
+                                                        (order.orderStatus == 'PENDING' ? 'status-pending' : 
+                                                        (order.orderStatus == 'PROCESSING' ? 'status-processing' : 
+                                                        (order.orderStatus == 'SHIPPED' ? 'status-shipped' : 
+                                                        (order.orderStatus == 'DELIVERED' ? 'status-delivered' : 
+                                                        (order.orderStatus == 'CANCELLED' ? 'status-cancelled' : '')))))}">
+                                            <span th:text="${order.orderStatus == 'PENDING' ? 'Chờ xác nhận' : 
+                                                        (order.orderStatus == 'PROCESSING' ? 'Đang xử lý' : 
+                                                        (order.orderStatus == 'SHIPPED' ? 'Đang vận chuyển' : 
+                                                        (order.orderStatus == 'DELIVERED' ? 'Đã giao hàng' : 
+                                                        (order.orderStatus == 'CANCELLED' ? 'Đã hủy' : order.orderStatus))))}">
+                                                Trạng thái
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div class="order-action">
+                                        <a th:href="@{/account/orders/{id}(id=${order.orderId})}" class="btn btn-outline-primary">
+                                            Xem chi tiết
+                                        </a>
+                                        
+                                        <!-- Nút hủy đơn hàng (chỉ hiển thị khi đơn hàng có thể hủy) -->
+                                        <form th:if="${order.orderStatus == 'PENDING' || order.orderStatus == 'PROCESSING'}" 
+                                              th:action="@{/account/orders/{id}/cancel(id=${order.orderId})}" 
+                                              method="post" 
+                                              class="d-inline-block ms-2">
+                                            <button type="submit" class="btn btn-outline-danger" 
+                                                    onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
+                                                Hủy đơn hàng
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

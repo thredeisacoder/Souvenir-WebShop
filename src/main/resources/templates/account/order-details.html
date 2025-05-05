@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Chi tiết đơn hàng - The Souvenir</title>
+    <style>
+        .order-detail-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .order-header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        
+        .order-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-id-display {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0e7c7b;
+            margin-bottom: 5px;
+        }
+        
+        .order-date-display {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-processing {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-shipped {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-cancelled {
+            background-color: #fbe9e7;
+            color: #d32f2f;
+        }
+        
+        .order-info-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .order-info-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .info-item {
+            margin-bottom: 5px;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .order-products {
+            margin-bottom: 30px;
+        }
+        
+        .product-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .product-image {
+            width: 80px;
+            height: 80px;
+            margin-right: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .product-details {
+            flex-grow: 1;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .product-price {
+            font-weight: 500;
+            color: #0e7c7b;
+        }
+        
+        .product-quantity {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .product-subtotal {
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .order-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .summary-label {
+            color: #666;
+        }
+        
+        .summary-value {
+            font-weight: 500;
+        }
+        
+        .summary-total {
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background-color: #ddd;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 25px;
+        }
+        
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid #0e7c7b;
+            z-index: 1;
+        }
+        
+        .timeline-content {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .timeline-date {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-description {
+            color: #666;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Chi tiết đơn hàng</h1>
+                        <p>Theo dõi đơn hàng và kiểm tra trạng thái</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="order-detail-container">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Order Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <div class="order-id-display">
+                            Đơn hàng #<span th:text="${order.orderId}">12345</span>
+                        </div>
+                        <div class="order-date-display">
+                            <i class="far fa-calendar-alt me-1"></i>
+                            Ngày đặt: <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2023 14:30</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span th:class="${'order-status ' + 
+                                        (order.orderStatus == 'PENDING' ? 'status-pending' : 
+                                        (order.orderStatus == 'PROCESSING' ? 'status-processing' : 
+                                        (order.orderStatus == 'SHIPPED' ? 'status-shipped' : 
+                                        (order.orderStatus == 'DELIVERED' ? 'status-delivered' : 
+                                        (order.orderStatus == 'CANCELLED' ? 'status-cancelled' : '')))))}">
+                            <span th:text="${order.orderStatus == 'PENDING' ? 'Chờ xác nhận' : 
+                                        (order.orderStatus == 'PROCESSING' ? 'Đang xử lý' : 
+                                        (order.orderStatus == 'SHIPPED' ? 'Đang vận chuyển' : 
+                                        (order.orderStatus == 'DELIVERED' ? 'Đã giao hàng' : 
+                                        (order.orderStatus == 'CANCELLED' ? 'Đã hủy' : order.orderStatus))))}">
+                                Trạng thái
+                            </span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <!-- Order Products -->
+                        <div class="order-products">
+                            <h5 class="section-title">Sản phẩm đã đặt</h5>
+                            
+                            <div class="product-item" th:each="item : ${orderDetails}">
+                                <div class="product-image">
+                                    <img th:if="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
+                                         th:src="${item.product.productDetails[0].imageUrl}" alt="Product Image">
+                                    <img th:unless="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
+                                         src="/assets/img/product-placeholder.jpg" alt="Product Image">
+                                </div>
+                                <div class="product-details">
+                                    <div class="product-name" th:text="${(item.product != null ? item.product.productName : 'Sản phẩm')}">Tên sản phẩm</div>
+                                    <div class="product-price" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT') + ' VND'}">100.000 VND</div>
+                                    <div class="product-quantity">
+                                        Số lượng: <span th:text="${item.quantity}">2</span>
+                                    </div>
+                                </div>
+                                <div class="product-subtotal">
+                                    <div th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT') + ' VND'}">200.000 VND</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="order-summary">
+                            <h5 class="section-title">Tổng quan đơn hàng</h5>
+                            
+                            <div class="summary-row">
+                                <div class="summary-label">Tổng tiền hàng:</div>
+                                <div class="summary-value">
+                                    <span th:if="${order.subtotal != null}" th:text="${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT') + ' VND'}">450.000 VND</span>
+                                    <span th:unless="${order.subtotal != null && order.subtotal > 0}" th:with="subtotal=${#aggregates.sum(orderDetails.![unitPrice * quantity])}" th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' VND'}">450.000 VND</span>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-row">
+                                <div class="summary-label">Phí vận chuyển:</div>
+                                <div class="summary-value" th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT') + ' VND'}">30.000 VND</div>
+                            </div>
+                            
+                            <div class="summary-row" th:if="${order.discountAmount != null && order.discountAmount > 0}">
+                                <div class="summary-label">Giảm giá:</div>
+                                <div class="summary-value" th:text="${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' VND'}">-50.000 VND</div>
+                            </div>
+                            
+                            <div class="summary-row summary-total">
+                                <div class="summary-label">Tổng thanh toán:</div>
+                                <div class="summary-value" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT') + ' VND'}">430.000 VND</div>
+                            </div>
+                        </div>
+
+                        <!-- Order Timeline -->
+                        <div class="order-timeline">
+                            <h5 class="section-title">Trạng thái đơn hàng</h5>
+                            
+                            <div class="timeline">
+                                <div class="timeline-item" th:each="event : ${timelineEvents}">
+                                    <div class="timeline-content">
+                                        <div class="timeline-date" th:text="${#temporals.format(event.timestamp, 'dd/MM/yyyy HH:mm')}">01/01/2023 14:30</div>
+                                        <div class="timeline-title" th:text="${event.status}">Đặt hàng thành công</div>
+                                        <div class="timeline-description" th:text="${event.description}">Đơn hàng của bạn đã được đặt thành công.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Order Actions -->
+                        <div class="mb-4">
+                            <a href="/account/orders" class="btn btn-outline-secondary w-100 mb-3">
+                                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách đơn hàng
+                            </a>
+                            
+                            <!-- Nút hủy đơn hàng (chỉ hiển thị khi đơn hàng có thể hủy) -->
+                            <form th:if="${order.orderStatus == 'PENDING' || order.orderStatus == 'PROCESSING'}" 
+                                  th:action="@{/account/orders/{id}/cancel(id=${order.orderId})}" 
+                                  method="post" 
+                                  class="d-inline-block w-100 mb-3">
+                                <button type="submit" class="btn btn-outline-danger w-100" 
+                                        onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
+                                    <i class="fas fa-times me-2"></i>Hủy đơn hàng
+                                </button>
+                            </form>
+                            
+                            <!-- Nút mua lại -->
+                            <a href="#" class="btn btn-primary w-100">
+                                <i class="fas fa-redo me-2"></i>Mua lại
+                            </a>
+                        </div>
+
+                        <!-- Shipping Information -->
+                        <div class="order-info-card">
+                            <h6 class="order-info-title">Thông tin giao hàng</h6>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Người nhận:</div>
+                                <div th:text="${order.address != null ? order.address.customer.fullName : order.customer.fullName}">Nguyễn Văn A</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Địa chỉ:</div>
+                                <div th:text="${order.address != null ? order.address.addressLine : 'N/A'}">123 Đường Láng, Quận Đống Đa, Hà Nội</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Thành phố:</div>
+                                <div th:text="${order.address != null ? order.address.city : 'N/A'}">Hà Nội</div>
+                            </div>
+                            
+                            <div class="info-item" th:if="${order.address != null && order.address.zipCode != null && !order.address.zipCode.isEmpty()}">
+                                <div class="info-label mb-1">Mã bưu điện:</div>
+                                <div th:text="${order.address.zipCode}">100000</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Số điện thoại:</div>
+                                <div th:text="${order.customer != null ? order.customer.phoneNumber : 'N/A'}">0123456789</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Phương thức vận chuyển:</div>
+                                <div>
+                                    <span th:if="${order.shippingMethod == 'standard'}">Giao hàng tiêu chuẩn (2-3 ngày)</span>
+                                    <span th:if="${order.shippingMethod == 'express'}">Giao hàng nhanh (1-2 ngày)</span>
+                                    <span th:if="${order.shippingMethod == 'overnight'}">Giao hàng qua đêm</span>
+                                    <span th:if="${order.shippingMethod == 'same_day'}">Giao hàng trong ngày</span>
+                                    <span th:unless="${order.shippingMethod == 'standard' || order.shippingMethod == 'express' || order.shippingMethod == 'overnight' || order.shippingMethod == 'same_day'}" th:text="${order.shippingMethod}">Phương thức vận chuyển khác</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Information -->
+                        <div class="order-info-card">
+                            <h6 class="order-info-title">Thông tin thanh toán</h6>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Phương thức thanh toán:</div>
+                                <div>
+                                    <span th:if="${order.paymentMethod != null && order.paymentMethod.methodName != null}" th:text="${order.paymentMethod.methodName}">Phương thức thanh toán</span>
+                                    <span th:if="${order.paymentMethod != null && order.paymentMethod.provider != null}" th:text="${'(' + order.paymentMethod.provider + ')'}">Nhà cung cấp</span>
+                                    <span th:if="${order.paymentMethod == null}">Thanh toán khi nhận hàng (COD)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label mb-1">Trạng thái thanh toán:</div>
+                                <div>
+                                    <span th:if="${order.payments != null && !order.payments.isEmpty() && order.payments[0].paymentStatus == 'completed'}" class="badge bg-success">Đã thanh toán</span>
+                                    <span th:if="${order.payments == null || order.payments.isEmpty() || order.payments[0].paymentStatus == 'pending'}" class="badge bg-warning text-dark">Chờ thanh toán</span>
+                                    <span th:if="${order.payments != null && !order.payments.isEmpty() && order.payments[0].paymentStatus == 'failed'}" class="badge bg-danger">Thanh toán thất bại</span>
+                                    <span th:if="${order.payments != null && !order.payments.isEmpty() && order.payments[0].paymentStatus == 'refunded'}" class="badge bg-danger">Đã hoàn tiền</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

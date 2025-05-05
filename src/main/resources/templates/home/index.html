@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Trang chủ - The Souvenir</title>
+    <link th:href="@{/assets/css/home.css}" rel="stylesheet">
+</head>
+<body>
+    <main layout:fragment="content">
+        <!-- Hero Banner Section -->
+        <section class="hero-banner">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="hero-content">
+                            <h1>Quà lưu niệm độc đáo</h1>
+                            <p>Khám phá những món quà lưu niệm và quà tặng độc đáo từ khắp nơi trên thế giới. Mỗi món đồ kể một câu chuyện và giữ gìn di sản văn hóa.</p>
+                            <a href="/products" class="btn btn-primary hero-btn">Khám phá ngay</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="hero-image">
+                            <img th:src="@{assets/img/feature.png}" alt="Quà lưu niệm độc đáo" onerror="this.src='https://placehold.co/600x400/0e7c7b/FFF?text=The+Souvenir'">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Featured Product Section -->
+        <section class="featured-product">
+            <div class="container">
+                <div class="featured-product-card">
+                    <div class="featured-product-image">
+                        <img th:src="@{/assets/images/featured-product.jpg}" alt="Sản phẩm nổi bật" onerror="this.src='https://placehold.co/400x300/f5f5f5/555?text=Sản+phẩm+nổi+bật'">
+                    </div>
+                    <div class="featured-product-content">
+                        <h2 class="featured-product-title">Bộ sưu tập quà lưu niệm thủ công</h2>
+                        <p>Những món quà lưu niệm thủ công phổ biến nhất của chúng tôi được làm bởi các nghệ nhân địa phương với kỹ thuật truyền thống và vật liệu cao cấp.</p>
+                        
+                        <div class="featured-product-features">
+                            <ul class="feature-list">
+                                <li class="feature-item"><i class="fas fa-check-circle"></i> Thủ công</li>
+                                <li class="feature-item"><i class="fas fa-check-circle"></i> Thiết kế truyền thống</li>
+                                <li class="feature-item"><i class="fas fa-check-circle"></i> Thân thiện với môi trường</li>
+                                <li class="feature-item"><i class="fas fa-check-circle"></i> Chất lượng cao cấp</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="featured-product-price">Từ 499.000đ</div>
+                        
+                        <a href="/products/featured" class="btn btn-primary">Mua ngay</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Categories Section -->
+        <section class="category-section">
+            <div class="container">
+                <h2 class="section-title">Danh mục sản phẩm</h2>
+                
+                <div class="row">
+                    <div th:each="catalog : ${catalogs}" class="col-6 col-md-3 col-lg-2">
+                        <a th:href="@{/products(catalogId=${catalog.catalogId})}" class="text-decoration-none">
+                            <div class="category-card d-flex flex-column align-items-center justify-content-center">
+                                <div class="category-icon">
+                                    <i th:class="${catalog.catalogIcon != null ? catalog.catalogIcon : 'fas fa-gift'}"></i>
+                                </div>
+                                <div class="category-name" th:text="${catalog.catalogName}">Danh mục</div>
+                            </div>
+                        </a>
+                    </div>
+                    <!-- Fallback if no catalogs available -->
+                    <div th:if="${catalogs == null || catalogs.empty}" class="col-12 text-center">
+                        <p>Đang cập nhật danh mục...</p>
+                        <a href="/products" class="btn btn-outline-primary mt-3">Xem tất cả sản phẩm</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Home page loaded');
+            });
+        </script>
+    </main>
+</body>
+</html>

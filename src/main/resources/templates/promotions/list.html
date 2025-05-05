@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Khuyến mãi - The Souvenir</title>
+    <style>
+        .promotion-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .promotion-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .promotion-header {
+            background-color: #0e7c7b;
+            color: white;
+            padding: 15px 20px;
+            position: relative;
+        }
+        
+        .promotion-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .promotion-dates {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .promotion-badge {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background-color: white;
+            color: #0e7c7b;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .promotion-content {
+            padding: 20px;
+        }
+        
+        .promotion-description {
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .promotion-discount {
+            display: inline-block;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: #0e7c7b;
+            border: 1px dashed #0e7c7b;
+        }
+        
+        .promotion-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 14px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .promotion-code {
+            background-color: #f8f9fa;
+            border: 1px dashed #ddd;
+            padding: 10px 15px;
+            display: inline-block;
+            font-family: monospace;
+            font-weight: 600;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        
+        .copy-code-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #0e7c7b;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-code-btn:hover {
+            background-color: #085b5a;
+        }
+        
+        .copy-code-btn i {
+            margin-right: 5px;
+        }
+        
+        .promotion-banner {
+            background-color: #f0f7f7;
+            padding: 50px 0;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .promotion-banner-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .promotion-banner-text {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .empty-promotions {
+            text-align: center;
+            padding: 50px 0;
+            color: #555;
+        }
+        
+        .empty-promotions i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 767px) {
+            .promotion-header {
+                text-align: center;
+            }
+            
+            .promotion-badge {
+                position: static;
+                display: inline-block;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <!-- Promotion Banner -->
+        <div class="promotion-banner">
+            <div class="container">
+                <h1 class="promotion-banner-title">Khuyến mãi đặc biệt</h1>
+                <p class="promotion-banner-text">Khám phá các ưu đãi hấp dẫn và tiết kiệm khi mua sắm tại The Souvenir. Chúng tôi thường xuyên cập nhật các khuyến mãi mới để mang đến trải nghiệm mua sắm tuyệt vời nhất cho bạn.</p>
+            </div>
+        </div>
+        
+        <div class="container py-5">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Khuyến mãi</li>
+                </ol>
+            </nav>
+            
+            <!-- No Promotions Found -->
+            <div th:if="${#lists.isEmpty(promotions)}" class="empty-promotions">
+                <i class="fas fa-gift"></i>
+                <h3>Không có khuyến mãi nào đang diễn ra</h3>
+                <p>Vui lòng quay lại sau để cập nhật các chương trình khuyến mãi mới.</p>
+                <a href="/products" class="btn btn-primary mt-3">Xem sản phẩm</a>
+            </div>
+            
+            <!-- Promotions List -->
+            <div th:if="${!#lists.isEmpty(promotions)}" class="row">
+                <div class="col-md-6 col-lg-4" th:each="promotion : ${promotions}">
+                    <div class="promotion-card">
+                        <div class="promotion-header">
+                            <h3 class="promotion-title" th:text="${promotion.title}"></h3>
+                            <div class="promotion-dates">
+                                <span th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}"></span> - 
+                                <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"></span>
+                            </div>
+                            <div class="promotion-badge" th:if="${promotion.status == 'ACTIVE' && promotion.startDate <= today && promotion.endDate >= today}">
+                                Đang diễn ra
+                            </div>
+                            <div class="promotion-badge" th:if="${promotion.status == 'ACTIVE' && promotion.startDate > today}">
+                                Sắp diễn ra
+                            </div>
+                            <div class="promotion-badge" th:if="${promotion.status == 'ACTIVE' && promotion.endDate < today}">
+                                Đã kết thúc
+                            </div>
+                        </div>
+                        
+                        <div class="promotion-content">
+                            <p class="promotion-description" th:text="${promotion.description}"></p>
+                            
+                            <div class="promotion-discount">
+                                <span th:if="${promotion.discountType == 'PERCENTAGE'}">
+                                    Giảm <span th:text="${promotion.discountValue}"></span>%
+                                </span>
+                                <span th:if="${promotion.discountType == 'FIXED_AMOUNT'}">
+                                    Giảm <span th:text="${#numbers.formatDecimal(promotion.discountValue, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                </span>
+                                <span th:if="${promotion.minimumOrderAmount > 0}">
+                                    khi mua từ <span th:text="${#numbers.formatDecimal(promotion.minimumOrderAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                </span>
+                            </div>
+                            
+                            <div th:if="${promotion.promoCode != null && !promotion.promoCode.isEmpty()}" class="d-flex align-items-center">
+                                <div class="promotion-code" th:text="${promotion.promoCode}"></div>
+                                <button class="copy-code-btn" th:attr="data-code=${promotion.promoCode}" onclick="copyPromoCode(this)">
+                                    <i class="far fa-copy"></i> Sao chép
+                                </button>
+                            </div>
+                            
+                            <div class="promotion-meta">
+                                <div>
+                                    <i class="fas fa-info-circle"></i> 
+                                    <a th:href="@{/promotions/{id}(id=${promotion.promotionId})}" class="text-decoration-none">Xem chi tiết</a>
+                                </div>
+                                <div th:if="${promotion.usageLimitPerCustomer > 0}">
+                                    <i class="fas fa-user"></i> Giới hạn: <span th:text="${promotion.usageLimitPerCustomer}"></span> lần/khách hàng
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function copyPromoCode(button) {
+                const code = button.getAttribute('data-code');
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> Đã sao chép';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        </script>
+    </main>
+</body>
+</html>

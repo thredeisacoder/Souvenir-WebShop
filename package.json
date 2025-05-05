@@ -1,0 +1,10 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "scripts": {
+    "sass": "sass --watch src/main/resources/static/assets/scss/main.scss:src/main/resources/static/assets/css/main.css --style compressed"
+  },
+  "devDependencies": {
+    "sass": "^1.69.5"
+  }
+}

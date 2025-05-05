@@ -1,0 +1,60 @@
+// Main SCSS file
+// This will be compiled to CSS
+
+// Variables
+$primary-color: #0d6efd;
+$secondary-color: #6c757d;
+$success-color: #198754;
+$info-color: #0dcaf0;
+$warning-color: #ffc107;
+$danger-color: #dc3545;
+$light-color: #f8f9fa;
+$dark-color: #212529;
+
+// Custom styles
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+// Product card styles
+.product-card {
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Hero section styles
+.hero-section {
+  background-color: $light-color;
+  padding: 4rem 0;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+// Category card styles
+.category-card {
+  transition: transform 0.3s;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+// Promotion card styles
+.promotion-card {
+  border-left: 4px solid $primary-color;
+}
+
+// Footer styles
+footer {
+  a {
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

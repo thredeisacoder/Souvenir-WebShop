@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lỗi - The Souvenir</title>
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 50px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .error-code {
+            font-size: 72px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .error-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .back-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code" th:text="${status}">500</div>
+        <h1 class="error-title" th:text="${error}">Lỗi</h1>
+        <p class="error-message" th:text="${message}">Đã xảy ra lỗi không mong muốn.</p>
+        <a href="/" class="back-button">Quay lại trang chủ</a>
+    </div>
+    
+    <script>
+        // Thêm script để ghi log lỗi và gửi thông tin lỗi về server nếu cần
+        window.addEventListener('load', function() {
+            console.log("Lỗi đã xảy ra trên trang: " + window.location.href);
+        });
+    </script>
+</body>
+</html>

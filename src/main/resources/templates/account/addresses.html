@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Địa chỉ của tôi</title>
+    <style>
+        .address-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .address-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .address-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .address-card.default {
+            border: 2px solid #0e7c7b;
+        }
+        
+        .default-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #0e7c7b;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .address-content {
+            margin-bottom: 15px;
+        }
+        
+        .address-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .address-text {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .address-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state-text {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header {
+            background-color: #0e7c7b;
+            color: white;
+        }
+        
+        .modal-footer .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #666;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Địa chỉ của tôi</h1>
+                        <p>Quản lý địa chỉ giao hàng của bạn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Address Container -->
+            <div class="address-container">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- Address Management Section -->
+                <div class="page-title">
+                    <h4>Danh sách địa chỉ</h4>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Empty state message -->
+                <div th:if="${#lists.isEmpty(addresses)}" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <p class="empty-state-text">Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ để dễ dàng thanh toán.</p>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Address cards -->
+                <div class="row" th:if="${not #lists.isEmpty(addresses)}">
+                    <div class="col-md-6" th:each="address : ${addresses}">
+                        <div th:class="${address.isDefault} ? 'address-card default' : 'address-card'">
+                            <span th:if="${address.isDefault}" class="default-badge">Mặc định</span>
+                            <div class="address-content">
+                                <div class="address-name" th:text="${customer.fullName}">Tên người nhận</div>
+                                <div class="address-text" th:text="${address.addressLine}">123 Đường Láng</div>
+                                <div class="address-text" th:text="${address.city + ', ' + address.country}">Hà Nội, Việt Nam</div>
+                                <div class="address-text" th:if="${address.zipCode}" th:text="${'Mã bưu điện: ' + address.zipCode}">Mã bưu điện: 100000</div>
+                            </div>
+                            
+                            <div class="address-actions">
+                                <button th:if="${!address.isDefault}" type="button" class="btn btn-sm btn-outline-primary" 
+                                        th:data-address-id="${address.addressId}"
+                                        onclick="setDefaultAddress(this.getAttribute('data-address-id'))">
+                                    <i class="fas fa-check-circle"></i> Đặt làm mặc định
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        th:data-address-id="${address.addressId}"
+                                        th:data-address-line="${address.addressLine}"
+                                        th:data-city="${address.city}"
+                                        th:data-country="${address.country}"
+                                        th:data-zip-code="${address.zipCode}"
+                                        onclick="editAddress(this)">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </button>
+                                <button th:if="${!address.isDefault}" type="button" class="btn btn-sm btn-outline-danger"
+                                        th:data-address-id="${address.addressId}"
+                                        onclick="deleteAddress(this.getAttribute('data-address-id'))">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Address Modal -->
+        <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addAddressModalLabel">Thêm địa chỉ mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addAddressForm" th:action="@{/account/addresses/add}" method="post">
+                            <input type="hidden" name="addressLine" id="combinedAddressLine">
+                            <div class="form-group mb-3">
+                                <label for="streetAddress" class="form-label">Số nhà, tên đường <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="streetAddress" name="streetAddress" placeholder="Số nhà, tên đường..." required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="wardCommune" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="wardCommune" name="wardCommune" placeholder="Phường/Xã..." required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="district" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="district" name="district" placeholder="Quận/Huyện..." required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="provinceCity" class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="provinceCity" name="city" required>
+                                        <option value="">Chọn Tỉnh/Thành phố</option>
+                                        <option value="Hà Nội">Hà Nội</option>
+                                        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                                        <option value="Đà Nẵng">Đà Nẵng</option>
+                                        <option value="Hải Phòng">Hải Phòng</option>
+                                        <option value="Cần Thơ">Cần Thơ</option>
+                                        <option value="An Giang">An Giang</option>
+                                        <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                                        <option value="Bắc Giang">Bắc Giang</option>
+                                        <option value="Bắc Kạn">Bắc Kạn</option>
+                                        <option value="Bạc Liêu">Bạc Liêu</option>
+                                        <option value="Bắc Ninh">Bắc Ninh</option>
+                                        <option value="Bến Tre">Bến Tre</option>
+                                        <option value="Bình Định">Bình Định</option>
+                                        <option value="Bình Dương">Bình Dương</option>
+                                        <option value="Bình Phước">Bình Phước</option>
+                                        <option value="Bình Thuận">Bình Thuận</option>
+                                        <option value="Cà Mau">Cà Mau</option>
+                                        <option value="Cao Bằng">Cao Bằng</option>
+                                        <option value="Đắk Lắk">Đắk Lắk</option>
+                                        <option value="Đắk Nông">Đắk Nông</option>
+                                        <option value="Điện Biên">Điện Biên</option>
+                                        <option value="Đồng Nai">Đồng Nai</option>
+                                        <option value="Đồng Tháp">Đồng Tháp</option>
+                                        <option value="Gia Lai">Gia Lai</option>
+                                        <option value="Hà Giang">Hà Giang</option>
+                                        <option value="Hà Nam">Hà Nam</option>
+                                        <option value="Hà Tĩnh">Hà Tĩnh</option>
+                                        <option value="Hải Dương">Hải Dương</option>
+                                        <option value="Hậu Giang">Hậu Giang</option>
+                                        <option value="Hòa Bình">Hòa Bình</option>
+                                        <option value="Hưng Yên">Hưng Yên</option>
+                                        <option value="Khánh Hòa">Khánh Hòa</option>
+                                        <option value="Kiên Giang">Kiên Giang</option>
+                                        <option value="Kon Tum">Kon Tum</option>
+                                        <option value="Lai Châu">Lai Châu</option>
+                                        <option value="Lâm Đồng">Lâm Đồng</option>
+                                        <option value="Lạng Sơn">Lạng Sơn</option>
+                                        <option value="Lào Cai">Lào Cai</option>
+                                        <option value="Long An">Long An</option>
+                                        <option value="Nam Định">Nam Định</option>
+                                        <option value="Nghệ An">Nghệ An</option>
+                                        <option value="Ninh Bình">Ninh Bình</option>
+                                        <option value="Ninh Thuận">Ninh Thuận</option>
+                                        <option value="Phú Thọ">Phú Thọ</option>
+                                        <option value="Phú Yên">Phú Yên</option>
+                                        <option value="Quảng Bình">Quảng Bình</option>
+                                        <option value="Quảng Nam">Quảng Nam</option>
+                                        <option value="Quảng Ngãi">Quảng Ngãi</option>
+                                        <option value="Quảng Ninh">Quảng Ninh</option>
+                                        <option value="Quảng Trị">Quảng Trị</option>
+                                        <option value="Sóc Trăng">Sóc Trăng</option>
+                                        <option value="Sơn La">Sơn La</option>
+                                        <option value="Tây Ninh">Tây Ninh</option>
+                                        <option value="Thái Bình">Thái Bình</option>
+                                        <option value="Thái Nguyên">Thái Nguyên</option>
+                                        <option value="Thanh Hóa">Thanh Hóa</option>
+                                        <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                                        <option value="Tiền Giang">Tiền Giang</option>
+                                        <option value="Trà Vinh">Trà Vinh</option>
+                                        <option value="Tuyên Quang">Tuyên Quang</option>
+                                        <option value="Vĩnh Long">Vĩnh Long</option>
+                                        <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                                        <option value="Yên Bái">Yên Bái</option>
+                                    </select>
+                                </div>
+                            <div class="col-md-6 mb-3">
+                                    <label for="country" class="form-label">Quốc gia <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="country" name="country" required>
+                                        <option value="">Chọn quốc gia</option>
+                                        <option th:if="${countries != null}" th:each="c : ${countries}" 
+                                                th:value="${c}" th:text="${c}" th:selected="${c == 'Việt Nam'}"></option>
+                                        <option th:if="${countries == null}" value="Việt Nam" selected>Việt Nam</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="zipCode" class="form-label">Mã bưu điện <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="zipCode" name="zipCode" placeholder="Mã bưu điện" required>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="isDefault" name="isDefault">
+                                <label class="form-check-label" for="isDefault">Đặt làm địa chỉ mặc định</label>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" form="addAddressForm" class="btn btn-primary">Lưu địa chỉ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Address Modal -->
+        <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editAddressModalLabel">Chỉnh sửa địa chỉ</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editAddressForm" method="post">
+                            <input type="hidden" id="editAddressId" name="addressId">
+                            <input type="hidden" name="addressLine" id="editCombinedAddressLine">
+                            <div class="form-group mb-3">
+                                <label for="editStreetAddress" class="form-label">Số nhà, tên đường <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editStreetAddress" name="editStreetAddress" placeholder="Số nhà, tên đường..." required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editWardCommune" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editWardCommune" name="editWardCommune" placeholder="Phường/Xã..." required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editDistrict" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editDistrict" name="editDistrict" placeholder="Quận/Huyện..." required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editProvinceCity" class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="editProvinceCity" name="city" required>
+                                        <option value="">Chọn Tỉnh/Thành phố</option>
+                                        <option value="Hà Nội">Hà Nội</option>
+                                        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                                        <option value="Đà Nẵng">Đà Nẵng</option>
+                                        <option value="Hải Phòng">Hải Phòng</option>
+                                        <option value="Cần Thơ">Cần Thơ</option>
+                                        <option value="An Giang">An Giang</option>
+                                        <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
+                                        <option value="Bắc Giang">Bắc Giang</option>
+                                        <option value="Bắc Kạn">Bắc Kạn</option>
+                                        <option value="Bạc Liêu">Bạc Liêu</option>
+                                        <option value="Bắc Ninh">Bắc Ninh</option>
+                                        <option value="Bến Tre">Bến Tre</option>
+                                        <option value="Bình Định">Bình Định</option>
+                                        <option value="Bình Dương">Bình Dương</option>
+                                        <option value="Bình Phước">Bình Phước</option>
+                                        <option value="Bình Thuận">Bình Thuận</option>
+                                        <option value="Cà Mau">Cà Mau</option>
+                                        <option value="Cao Bằng">Cao Bằng</option>
+                                        <option value="Đắk Lắk">Đắk Lắk</option>
+                                        <option value="Đắk Nông">Đắk Nông</option>
+                                        <option value="Điện Biên">Điện Biên</option>
+                                        <option value="Đồng Nai">Đồng Nai</option>
+                                        <option value="Đồng Tháp">Đồng Tháp</option>
+                                        <option value="Gia Lai">Gia Lai</option>
+                                        <option value="Hà Giang">Hà Giang</option>
+                                        <option value="Hà Nam">Hà Nam</option>
+                                        <option value="Hà Tĩnh">Hà Tĩnh</option>
+                                        <option value="Hải Dương">Hải Dương</option>
+                                        <option value="Hậu Giang">Hậu Giang</option>
+                                        <option value="Hòa Bình">Hòa Bình</option>
+                                        <option value="Hưng Yên">Hưng Yên</option>
+                                        <option value="Khánh Hòa">Khánh Hòa</option>
+                                        <option value="Kiên Giang">Kiên Giang</option>
+                                        <option value="Kon Tum">Kon Tum</option>
+                                        <option value="Lai Châu">Lai Châu</option>
+                                        <option value="Lâm Đồng">Lâm Đồng</option>
+                                        <option value="Lạng Sơn">Lạng Sơn</option>
+                                        <option value="Lào Cai">Lào Cai</option>
+                                        <option value="Long An">Long An</option>
+                                        <option value="Nam Định">Nam Định</option>
+                                        <option value="Nghệ An">Nghệ An</option>
+                                        <option value="Ninh Bình">Ninh Bình</option>
+                                        <option value="Ninh Thuận">Ninh Thuận</option>
+                                        <option value="Phú Thọ">Phú Thọ</option>
+                                        <option value="Phú Yên">Phú Yên</option>
+                                        <option value="Quảng Bình">Quảng Bình</option>
+                                        <option value="Quảng Nam">Quảng Nam</option>
+                                        <option value="Quảng Ngãi">Quảng Ngãi</option>
+                                        <option value="Quảng Ninh">Quảng Ninh</option>
+                                        <option value="Quảng Trị">Quảng Trị</option>
+                                        <option value="Sóc Trăng">Sóc Trăng</option>
+                                        <option value="Sơn La">Sơn La</option>
+                                        <option value="Tây Ninh">Tây Ninh</option>
+                                        <option value="Thái Bình">Thái Bình</option>
+                                        <option value="Thái Nguyên">Thái Nguyên</option>
+                                        <option value="Thanh Hóa">Thanh Hóa</option>
+                                        <option value="Thừa Thiên Huế">Thừa Thiên Huế</option>
+                                        <option value="Tiền Giang">Tiền Giang</option>
+                                        <option value="Trà Vinh">Trà Vinh</option>
+                                        <option value="Tuyên Quang">Tuyên Quang</option>
+                                        <option value="Vĩnh Long">Vĩnh Long</option>
+                                        <option value="Vĩnh Phúc">Vĩnh Phúc</option>
+                                        <option value="Yên Bái">Yên Bái</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editCountry" class="form-label">Quốc gia <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="editCountry" name="country" required>
+                                        <option value="">Chọn quốc gia</option>
+                                        <option th:if="${countries != null}" th:each="c : ${countries}" 
+                                                th:value="${c}" th:text="${c}"></option>
+                                        <option th:if="${countries == null}" value="Việt Nam">Việt Nam</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="editZipCode" class="form-label">Mã bưu điện <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editZipCode" name="zipCode" placeholder="Mã bưu điện" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" form="editAddressForm" class="btn btn-primary">Cập nhật</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Address Confirmation Modal -->
+        <div class="modal fade" id="deleteAddressModal" tabindex="-1" aria-labelledby="deleteAddressModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteAddressModalLabel">Xác nhận xóa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Bạn có chắc chắn muốn xóa địa chỉ này không?</p>
+                        <p>Thao tác này không thể hoàn tác.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <form id="deleteAddressForm" method="post">
+                            <input type="hidden" id="deleteAddressId" name="addressId">
+                            <button type="submit" class="btn btn-danger">Xóa</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Set Default Address Form -->
+        <form id="setDefaultAddressForm" method="post" class="d-none">
+            <input type="hidden" id="defaultAddressId" name="addressId">
+        </form>
+    </main>
+
+    <th:block layout:fragment="script">
+        <script>
+            // Function to combine address components into a single address line
+            function combineAddressComponents() {
+                const streetAddress = document.getElementById('streetAddress').value.trim();
+                const wardCommune = document.getElementById('wardCommune').value.trim();
+                const district = document.getElementById('district').value.trim();
+                
+                // Combine the components into a single address line
+                const combinedAddress = `${streetAddress}, ${wardCommune}, ${district}`;
+                document.getElementById('combinedAddressLine').value = combinedAddress;
+            }
+            
+            // Function to combine address components for edit form
+            function combineEditAddressComponents() {
+                const streetAddress = document.getElementById('editStreetAddress').value.trim();
+                const wardCommune = document.getElementById('editWardCommune').value.trim();
+                const district = document.getElementById('editDistrict').value.trim();
+                
+                // Combine the components into a single address line
+                const combinedAddress = `${streetAddress}, ${wardCommune}, ${district}`;
+                document.getElementById('editCombinedAddressLine').value = combinedAddress;
+            }
+            
+            // Add event listeners to the forms
+            document.addEventListener('DOMContentLoaded', function() {
+                const addAddressForm = document.getElementById('addAddressForm');
+                if (addAddressForm) {
+                    // Gắn sự kiện cho nút submit thay vì form
+                    document.querySelector('button[form="addAddressForm"]').addEventListener('click', function(event) {
+                        // Ngăn việc gửi form trực tiếp
+                        event.preventDefault();
+                        // Kết hợp các trường địa chỉ
+                        combineAddressComponents();
+                        // Gửi form sau khi đã kết hợp
+                        addAddressForm.submit();
+                    });
+                }
+                
+                const editAddressForm = document.getElementById('editAddressForm');
+                if (editAddressForm) {
+                    // Gắn sự kiện cho nút submit thay vì form
+                    document.querySelector('button[form="editAddressForm"]').addEventListener('click', function(event) {
+                        // Ngăn việc gửi form trực tiếp
+                        event.preventDefault();
+                        // Kết hợp các trường địa chỉ
+                        combineEditAddressComponents();
+                        // Gửi form sau khi đã kết hợp
+                        editAddressForm.submit();
+                    });
+                }
+            });
+            
+            // Function to parse an address line into components for editing
+            function parseAddressLine(addressLine) {
+                if (!addressLine) return { street: '', ward: '', district: '' };
+                
+                // Split the address by commas
+                const parts = addressLine.split(',').map(part => part.trim());
+                
+                // Extract components based on position
+                let street = parts[0] || '';
+                let ward = parts.length > 1 ? parts[1] : '';
+                let district = parts.length > 2 ? parts[2] : '';
+                
+                return { street, ward, district };
+            }
+            
+            // Function to populate edit address modal
+            function editAddress(button) {
+                const addressId = button.getAttribute('data-address-id');
+                
+                // Get detailed address components directly from data attributes
+                const addressLine = button.getAttribute('data-address-line') || '';
+                const city = button.getAttribute('data-city') || '';
+                const country = button.getAttribute('data-country') || '';
+                const zipCode = button.getAttribute('data-zip-code') || '';
+                
+                // Parse the address line into components
+                const addressComponents = parseAddressLine(addressLine);
+                
+                // Populate the form fields with the retrieved values
+                document.getElementById('editAddressId').value = addressId;
+                document.getElementById('editStreetAddress').value = addressComponents.street;
+                document.getElementById('editWardCommune').value = addressComponents.ward;
+                document.getElementById('editDistrict').value = addressComponents.district;
+                document.getElementById('editProvinceCity').value = city;
+                document.getElementById('editCountry').value = country;
+                document.getElementById('editZipCode').value = zipCode;
+                
+                // Set the form action URL dynamically
+                document.getElementById('editAddressForm').action = `/account/addresses/${addressId}/update`;
+                
+                const editModal = new bootstrap.Modal(document.getElementById('editAddressModal'));
+                editModal.show();
+            }
+            
+            // Function to confirm address deletion
+            function deleteAddress(addressId) {
+                document.getElementById('deleteAddressId').value = addressId;
+                // Set the form action URL dynamically
+                document.getElementById('deleteAddressForm').action = `/account/addresses/${addressId}/delete`;
+                
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteAddressModal'));
+                deleteModal.show();
+            }
+            
+            // Function to set default address
+            function setDefaultAddress(addressId) {
+                document.getElementById('defaultAddressId').value = addressId;
+                // Set the form action URL dynamically
+                document.getElementById('setDefaultAddressForm').action = `/account/addresses/${addressId}/default`;
+                document.getElementById('setDefaultAddressForm').submit();
+            }
+        </script>
+    </th:block>
+</body>
+</html>

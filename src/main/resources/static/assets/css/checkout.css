@@ -1,0 +1,187 @@
+/* Reset CSS cho trang checkout */
+.checkout-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Styles cho các section */
+.form-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-section h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Styles cho địa chỉ */
+.address-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.address-card:hover {
+    border-color: #aaa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.address-card.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Tab container styles */
+.tab-container {
+    margin-bottom: 20px;
+}
+
+.tab-container .nav-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.tab-container .nav-tabs .nav-link {
+    margin-bottom: -1px;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.tab-container .nav-tabs .nav-link:hover {
+    border-color: #e9ecef #e9ecef #dee2e6;
+    color: #495057;
+}
+
+.tab-container .nav-tabs .nav-link.active {
+    color: #495057;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+/* Shipping options styles */
+.shipping-option {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.shipping-option:hover {
+    border-color: #aaa;
+    background-color: #f8f9fa;
+}
+
+.shipping-option.selected {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background-color: #f8f9fa;
+}
+
+/* Payment methods styles */
+.payment-radio-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.payment-radio-container .form-check {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    flex: 1;
+    margin-right: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    margin-bottom: 10px;
+}
+
+.payment-radio-container .form-check:last-child {
+    margin-right: 0;
+}
+
+.payment-radio-container .form-check:hover {
+    border-color: #aaa;
+    background-color: #f8f9fa;
+}
+
+.payment-radio-container .form-check.selected {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+.payment-radio-container .form-check-label {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Payment form styles */
+.payment-form {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    display: none;
+}
+
+/* Summary card styles */
+.checkout-summary {
+    position: sticky;
+    top: 20px;
+}
+
+.product-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .payment-radio-container {
+        flex-direction: column;
+    }
+    
+    .payment-radio-container .form-check {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+}
+
+/* Form inputs & buttons */
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.btn-primary:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+}
