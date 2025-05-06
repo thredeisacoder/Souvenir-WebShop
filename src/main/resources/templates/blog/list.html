@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/main-layout}">
+
+<head>
+    <title>Blog - The Souvenir</title>
+    <link th:href="@{/assets/css/blog.css}" rel="stylesheet">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container py-5">
+            <div class="row">
+                <!-- Blog Posts -->
+                <div class="col-lg-9">
+                    <h1 class="mb-4">Blog</h1>
+                    
+                    <!-- Search Form -->
+                    <div class="blog-search mb-5">
+                        <form th:action="@{/blog/search}" method="get" class="d-flex">
+                            <input type="text" name="query" class="form-control me-2" placeholder="Tìm kiếm bài viết..." 
+                                   th:value="${searchTerm != null ? searchTerm : ''}">
+                            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Search results heading (if applicable) -->
+                    <div th:if="${searchTerm != null && searchTerm != ''}" class="alert alert-info mb-4">
+                        <p class="mb-0">
+                            <span th:text="${resultCount}">0</span> kết quả cho 
+                            <strong th:text="${searchTerm}">từ khóa</strong>
+                        </p>
+                    </div>
+
+                    <!-- Blog Posts List -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4" th:each="post : ${blogPosts}">
+                            <div class="card blog-card h-100">
+                                <img th:src="${post.imageUrl}" class="card-img-top" alt="Blog Image">
+                                <div class="card-body">
+                                    <h5 class="card-title" th:text="${post.title}">Tiêu đề bài viết</h5>
+                                    <p class="card-text text-muted">
+                                        <small>
+                                            <i class="bi bi-person"></i> <span th:text="${post.author}">Tác giả</span> &bull;
+                                            <i class="bi bi-calendar3"></i> <span th:text="${#temporals.format(post.publishedDate, 'dd/MM/yyyy')}">Ngày đăng</span>
+                                        </small>
+                                    </p>
+                                    <p class="card-text" th:text="${post.excerpt}">Đoạn tóm tắt của bài viết...</p>
+                                    <a th:href="@{'/blog/' + ${post.slug}}" class="btn btn-outline-primary">Đọc tiếp</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- No results message -->
+                    <div th:if="${blogPosts.isEmpty()}" class="alert alert-secondary text-center py-5">
+                        <i class="bi bi-journal-x display-4 d-block mb-3"></i>
+                        <h4>Không tìm thấy bài viết nào</h4>
+                        <p class="mb-0" th:if="${searchTerm != null && searchTerm != ''}">
+                            Không có bài viết nào phù hợp với từ khóa "<span th:text="${searchTerm}">từ khóa</span>".
+                        </p>
+                        <p class="mb-0" th:if="${searchTerm == null || searchTerm == ''}">
+                            Chưa có bài viết nào được đăng.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Chủ đề phổ biến</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="#" class="badge bg-secondary text-decoration-none">quà lưu niệm</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">thủ công</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">truyền thống</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">handmade</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">du lịch</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">đặc sản</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Theo dõi chúng tôi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-around">
+                                <a href="#" class="text-primary"><i class="fab fa-facebook-f fa-lg"></i></a>
+                                <a href="#" class="text-danger"><i class="fab fa-instagram fa-lg"></i></a>
+                                <a href="#" class="text-info"><i class="fab fa-twitter fa-lg"></i></a>
+                                <a href="#" class="text-danger"><i class="fab fa-youtube fa-lg"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Page specific styles -->
+    <th:block layout:fragment="css">
+        <style>
+            .blog-card {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .blog-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            .blog-card img {
+                height: 200px;
+                object-fit: cover;
+            }
+        </style>
+    </th:block>
+</body>
+</html>

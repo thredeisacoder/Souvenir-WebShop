@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/main-layout}">
+
+<head>
+    <title th:text="${blogPost.title + ' - Blog - The Souvenir'}">Blog Post - The Souvenir</title>
+    <link th:href="@{/assets/css/blog.css}" rel="stylesheet">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container py-5">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-9">
+                    <!-- Breadcrumb -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/blog}">Blog</a></li>
+                            <li class="breadcrumb-item active" aria-current="page" th:text="${blogPost.title}">Tiêu đề bài viết</li>
+                        </ol>
+                    </nav>
+                    
+                    <!-- Article Header -->
+                    <header class="blog-post-header mb-4">
+                        <h1 class="blog-post-title mb-3" th:text="${blogPost.title}">Tiêu đề bài viết</h1>
+                        <div class="blog-post-meta text-muted mb-4">
+                            <span><i class="bi bi-person"></i> <span th:text="${blogPost.author}">Tác giả</span></span>
+                            <span class="mx-2">•</span>
+                            <span><i class="bi bi-calendar3"></i> <span th:text="${#temporals.format(blogPost.publishedDate, 'dd/MM/yyyy')}">Ngày đăng</span></span>
+                        </div>
+                    </header>
+                    
+                    <!-- Featured Image -->
+                    <div class="blog-featured-image mb-4">
+                        <img th:src="${blogPost.imageUrl}" class="img-fluid rounded" alt="Blog Post Image">
+                    </div>
+                    
+                    <!-- Article Content -->
+                    <article class="blog-post-content mb-5">
+                        <div th:utext="${blogPost.content}">
+                            <!-- Blog post content will be inserted here -->
+                        </div>
+                    </article>
+                    
+                    <!-- Tags -->
+                    <div class="blog-post-tags mb-5">
+                        <h5>Chủ đề:</h5>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <!-- In a real app, these would come from the post data -->
+                            <a href="#" class="badge bg-secondary text-decoration-none">quà lưu niệm</a>
+                            <a href="#" class="badge bg-secondary text-decoration-none">thủ công</a>
+                            <a href="#" class="badge bg-secondary text-decoration-none">truyền thống</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Share Buttons -->
+                    <div class="blog-post-share mb-5">
+                        <h5>Chia sẻ:</h5>
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="#" class="btn btn-primary"><i class="fab fa-facebook-f me-1"></i> Facebook</a>
+                            <a href="#" class="btn btn-info text-white"><i class="fab fa-twitter me-1"></i> Twitter</a>
+                            <a href="#" class="btn btn-success"><i class="fab fa-whatsapp me-1"></i> WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-3">
+                    <!-- Recent Posts -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Bài viết gần đây</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2" th:each="post : ${recentPosts}">
+                                    <a th:href="@{'/blog/' + ${post.slug}}" class="d-block text-decoration-none">
+                                        <span class="d-block text-truncate" th:text="${post.title}">Tiêu đề bài viết</span>
+                                        <small class="text-muted" th:text="${#temporals.format(post.publishedDate, 'dd/MM/yyyy')}">Ngày đăng</small>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- Popular Tags -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Chủ đề phổ biến</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="#" class="badge bg-secondary text-decoration-none">quà lưu niệm</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">thủ công</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">truyền thống</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">handmade</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">du lịch</a>
+                                <a href="#" class="badge bg-secondary text-decoration-none">đặc sản</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Follow Us -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Theo dõi chúng tôi</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-around">
+                                <a href="#" class="text-primary"><i class="fab fa-facebook-f fa-lg"></i></a>
+                                <a href="#" class="text-danger"><i class="fab fa-instagram fa-lg"></i></a>
+                                <a href="#" class="text-info"><i class="fab fa-twitter fa-lg"></i></a>
+                                <a href="#" class="text-danger"><i class="fab fa-youtube fa-lg"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Page specific styles -->
+    <th:block layout:fragment="css">
+        <style>
+            .blog-post-content {
+                line-height: 1.8;
+                font-size: 1.1rem;
+            }
+            
+            .blog-post-content h2 {
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .blog-post-content p {
+                margin-bottom: 1.2rem;
+            }
+            
+            .blog-featured-image img {
+                width: 100%;
+                max-height: 500px;
+                object-fit: cover;
+            }
+        </style>
+    </th:block>
+</body>
+</html>
