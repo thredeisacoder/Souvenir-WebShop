@@ -30,15 +30,21 @@ public class SecurityConfig {
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/checkout/**").authenticated()
                                                 .requestMatchers("/**").permitAll())
-                                // Removed redundant form login configuration
-                                // Using custom authentication in AuthController instead
-                                .logout(logout -> logout
-                                                .logoutUrl("/auth/logout")
-                                                .logoutSuccessUrl("/auth/login?logout")
-                                                .permitAll())
-                                .csrf(csrf -> csrf.disable())
                                 .exceptionHandling(exceptions -> exceptions
-                                                .accessDeniedHandler(accessDeniedHandler))
+                                                .accessDeniedHandler(accessDeniedHandler)
+                                                .authenticationEntryPoint((request, response, authException) -> {
+                                                        // Chuyển hướng đến trang đăng nhập với tham số denied
+                                                        String redirectUrl = "/auth/login?denied=true";
+                                                        
+                                                        // Lấy đường dẫn hiện tại để có thể chuyển hướng lại sau khi đăng nhập
+                                                        String requestUri = request.getRequestURI();
+                                                        if (requestUri.startsWith("/cart")) {
+                                                            redirectUrl = "/auth/login?redirect=cart";
+                                                        }
+                                                        
+                                                        response.sendRedirect(redirectUrl);
+                                                }))
+                                .csrf(csrf -> csrf.disable())
                                 .addFilterBefore(new SessionAuthenticationFilter(),
                                                 UsernamePasswordAuthenticationFilter.class);
 

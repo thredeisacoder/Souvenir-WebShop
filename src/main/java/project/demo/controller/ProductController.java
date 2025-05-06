@@ -1,6 +1,7 @@
 package project.demo.controller;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class ProductController {
             @RequestParam(required = false) Integer category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String query, // For search from /products/search
+            @RequestParam(required = false) List<String> priceRange, // Khoảng giá để lọc
             @RequestParam(defaultValue = "0") int page, // Spring Data pages are 0-based
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(defaultValue = "productName") String sort,
@@ -59,9 +61,12 @@ public class ProductController {
             search = query;
         }
 
+        // Tăng kích thước trang để đảm bảo lấy đủ sản phẩm sau khi lọc
+        int adjustedPageSize = size * 3; // Tăng gấp 3 để đảm bảo đủ sản phẩm sau khi lọc
+        
         // Create Pageable object with sorting
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        Pageable pageable = PageRequest.of(page, adjustedPageSize, Sort.by(sortDirection, sort));
 
         // Get products based on filters
         Page<Product> productPage;
@@ -74,9 +79,6 @@ public class ProductController {
             // Search by name with pagination
             productPage = productService.searchByNamePaginated(search, pageable);
             model.addAttribute("searchTerm", search);
-            // For debugging
-            System.out.println("Searching with term: " + search);
-            System.out.println("Found " + productPage.getTotalElements() + " products");
         } else {
             // Get all products with pagination
             productPage = productService.findAllPaginated(pageable);
@@ -89,6 +91,26 @@ public class ProductController {
         Map<Integer, String> productImages = new HashMap<>();
         Map<Integer, BigDecimal> productDiscountPrices = new HashMap<>();
         Map<Integer, Boolean> productStockStatus = new HashMap<>();
+
+        // Chuyển đổi các khoảng giá thành min-max để lọc
+        List<PriceRange> priceRanges = new ArrayList<>();
+        if (priceRange != null && !priceRange.isEmpty()) {
+            for (String range : priceRange) {
+                String[] limits = range.split("-");
+                if (limits.length == 2) {
+                    try {
+                        double min = Double.parseDouble(limits[0]);
+                        double max = Double.parseDouble(limits[1]);
+                        priceRanges.add(new PriceRange(min, max));
+                    } catch (NumberFormatException e) {
+                        // Bỏ qua nếu không thể chuyển đổi
+                    }
+                }
+            }
+        }
+        
+        // Xử lý trường hợp nhiều khoảng giá được chọn cùng lúc
+        double[] effectivePriceRange = processMultiplePriceRanges(priceRanges);
 
         for (Product product : products) {
             try {
@@ -108,31 +130,74 @@ public class ProductController {
                     boolean inStock = detail.getQuantityInStock() != null && detail.getQuantityInStock() > 0;
                     productStockStatus.put(product.getProductId(), inStock);
                     
-                    // Only add products with stock to the filtered list
+                    // Lấy giá hiển thị (giá khuyến mãi nếu có, nếu không thì giá gốc)
+                    BigDecimal displayPrice = detail.getDiscountPrice() != null ? 
+                                             detail.getDiscountPrice() : 
+                                             product.getPrice();
+                    
+                    // Chỉ thêm sản phẩm còn hàng vào danh sách hiển thị
                     if (inStock) {
-                        inStockProducts.add(product);
+                        // Nếu có lọc giá, chỉ thêm sản phẩm trong khoảng giá hiệu quả
+                        if (effectivePriceRange != null) {
+                            double productPrice = displayPrice.doubleValue();
+                            
+                            // Kiểm tra nếu giá sản phẩm nằm trong khoảng giá hiệu quả
+                            if (productPrice >= effectivePriceRange[0] && productPrice <= effectivePriceRange[1]) {
+                                inStockProducts.add(product);
+                            }
+                        } else {
+                            // Không có lọc giá, thêm tất cả sản phẩm còn hàng
+                            inStockProducts.add(product);
+                        }
                     }
                 }
             } catch (Exception e) {
                 // If product detail not found, skip this product
                 productStockStatus.put(product.getProductId(), false);
+                // Không thêm sản phẩm không có thông tin (có thể hết hàng)
             }
         }
+
+        // Xử lý phân trang cho danh sách sản phẩm còn hàng
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, inStockProducts.size());
+        
+        // Đảm bảo không vượt quá giới hạn của danh sách
+        if (startIndex >= inStockProducts.size()) {
+            startIndex = Math.max(0, inStockProducts.size() - size);
+            endIndex = inStockProducts.size();
+            // Nếu trang hiện tại vượt quá số trang thực tế, điều chỉnh lại
+            if (page > 0 && startIndex == 0) {
+                return "redirect:/products?page=0&size=" + size + "&sort=" + sort + "&direction=" + direction + 
+                       (category != null ? "&category=" + category : "") + 
+                       (search != null ? "&query=" + search : "") +
+                       getPriceRangeParams(priceRange);
+            }
+        }
+        
+        List<Product> pagedProducts = startIndex < endIndex ? 
+                                     inStockProducts.subList(startIndex, endIndex) : 
+                                     new java.util.ArrayList<>();
 
         // Get all categories for the filter dropdown
         List<Catalog> categories = catalogService.findAllActive();
 
-        // Add data to the model - use inStockProducts instead of all products
-        model.addAttribute("products", inStockProducts);
+        // Add data to the model
+        model.addAttribute("products", pagedProducts);
         model.addAttribute("productImages", productImages);
         model.addAttribute("productDiscountPrices", productDiscountPrices);
         model.addAttribute("productStockStatus", productStockStatus);
         model.addAttribute("categories", categories);
+        
+        // Khoảng giá đã chọn
+        model.addAttribute("selectedPriceRanges", priceRange);
 
         // Add pagination data
-        model.addAttribute("currentPage", productPage.getNumber() + 1); // Convert to 1-based for display
-        model.addAttribute("totalPages", productPage.getTotalPages());
-        model.addAttribute("totalProducts", inStockProducts.size());
+        model.addAttribute("currentPage", page + 1); // Convert to 1-based for display
+        int totalItems = inStockProducts.size();
+        int calculatedTotalPages = (int) Math.ceil((double) totalItems / size);
+        model.addAttribute("totalPages", calculatedTotalPages > 0 ? calculatedTotalPages : 1);
+        model.addAttribute("totalProducts", totalItems);
         model.addAttribute("pageSize", size);
 
         // Add sorting data
@@ -141,6 +206,66 @@ public class ProductController {
         model.addAttribute("reverseSortDirection", direction.equals("asc") ? "desc" : "asc");
 
         return "products/list";
+    }
+    
+    /**
+     * Helper method để tạo chuỗi tham số cho khoảng giá
+     */
+    private String getPriceRangeParams(List<String> priceRanges) {
+        if (priceRanges == null || priceRanges.isEmpty()) {
+            return "";
+        }
+        
+        StringBuilder builder = new StringBuilder();
+        for (String range : priceRanges) {
+            builder.append("&priceRange=").append(range);
+        }
+        return builder.toString();
+    }
+    
+    /**
+     * Inner class để đại diện cho khoảng giá
+     */
+    private static class PriceRange {
+        private final double min;
+        private final double max;
+        
+        public PriceRange(double min, double max) {
+            this.min = min;
+            this.max = max;
+        }
+        
+        public double getMin() {
+            return min;
+        }
+        
+        public double getMax() {
+            return max;
+        }
+    }
+    
+    /**
+     * Xử lý logic lọc khoảng giá
+     * Nếu người dùng chọn nhiều khoảng giá, lấy min của khoảng thấp nhất và max của khoảng cao nhất
+     */
+    private double[] processMultiplePriceRanges(List<PriceRange> ranges) {
+        if (ranges == null || ranges.isEmpty()) {
+            return null;
+        }
+        
+        double minPrice = Double.MAX_VALUE;
+        double maxPrice = Double.MIN_VALUE;
+        
+        for (PriceRange range : ranges) {
+            if (range.getMin() < minPrice) {
+                minPrice = range.getMin();
+            }
+            if (range.getMax() > maxPrice) {
+                maxPrice = range.getMax();
+            }
+        }
+        
+        return new double[] { minPrice, maxPrice };
     }
 
     /**
@@ -209,7 +334,7 @@ public class ProductController {
         // For debugging
         System.out.println("Search endpoint called with query: " + query);
 
-        // Pass the query parameter as the search parameter to listProducts
-        return listProducts(null, null, query, page, size, sort, direction, model);
+        // Truyền null cho tham số priceRange (không áp dụng lọc giá cho tìm kiếm)
+        return listProducts(null, null, query, null, page, size, sort, direction, model);
     }
 }

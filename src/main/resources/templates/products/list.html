@@ -218,33 +218,47 @@
                         </div>
                     </div>
                     
-                    <!-- Price Filter (future implementation) -->
+                    <!-- Price Filter -->
                     <div class="category-filter">
                         <h5>Giá</h5>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price1">
-                            <label class="form-check-label" for="price1">
-                                Dưới 100.000đ
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price2">
-                            <label class="form-check-label" for="price2">
-                                100.000đ - 300.000đ
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price3">
-                            <label class="form-check-label" for="price3">
-                                300.000đ - 500.000đ
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="price4">
-                            <label class="form-check-label" for="price4">
-                                Trên 500.000đ
-                            </label>
-                        </div>
+                        <form id="priceFilterForm" th:action="@{/products}" method="get">
+                            <!-- Giữ lại các tham số hiện tại -->
+                            <input type="hidden" name="category" th:if="${param.category}" th:value="${param.category[0]}">
+                            <input type="hidden" name="sort" th:if="${sortField}" th:value="${sortField}">
+                            <input type="hidden" name="direction" th:if="${sortDirection}" th:value="${sortDirection}">
+                            <input type="hidden" name="query" th:if="${searchTerm}" th:value="${searchTerm}">
+                            
+                            <div class="form-check">
+                                <input class="form-check-input price-filter" type="checkbox" name="priceRange" value="0-100000" id="price1" th:checked="${selectedPriceRanges != null && #lists.contains(selectedPriceRanges, '0-100000')}">
+                                <label class="form-check-label" for="price1">
+                                    Dưới 100.000đ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input price-filter" type="checkbox" name="priceRange" value="100000-300000" id="price2" th:checked="${selectedPriceRanges != null && #lists.contains(selectedPriceRanges, '100000-300000')}">
+                                <label class="form-check-label" for="price2">
+                                    100.000đ - 300.000đ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input price-filter" type="checkbox" name="priceRange" value="300000-500000" id="price3" th:checked="${selectedPriceRanges != null && #lists.contains(selectedPriceRanges, '300000-500000')}">
+                                <label class="form-check-label" for="price3">
+                                    300.000đ - 500.000đ
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input price-filter" type="checkbox" name="priceRange" value="500000-999999999" id="price4" th:checked="${selectedPriceRanges != null && #lists.contains(selectedPriceRanges, '500000-999999999')}">
+                                <label class="form-check-label" for="price4">
+                                    Trên 500.000đ
+                                </label>
+                            </div>
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-sm btn-primary">Lọc giá</button>
+                                <a th:href="@{/products(category=${param.category}, sort=${sortField}, direction=${sortDirection}, query=${searchTerm})}" 
+                                   th:if="${selectedPriceRanges != null && !selectedPriceRanges.isEmpty()}"
+                                   class="btn btn-sm btn-outline-secondary ms-1">Xóa lọc</a>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 
@@ -337,16 +351,21 @@
                     <div th:if="${totalPages > 1}" class="pagination-container">
                         <nav aria-label="Page navigation">
                             <ul class="pagination">
+                                <!-- Previous Page Button -->
                                 <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${currentPage - 2}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category})}" aria-label="Previous">
+                                    <a class="page-link" th:href="@{/products(page=${currentPage - 2}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
+                                
+                                <!-- Page Numbers -->
                                 <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${i - 1}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category})}" th:text="${i}"></a>
+                                    <a class="page-link" th:href="@{/products(page=${i - 1}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" th:text="${i}"></a>
                                 </li>
+                                
+                                <!-- Next Page Button -->
                                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${currentPage}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category})}" aria-label="Next">
+                                    <a class="page-link" th:href="@{/products(page=${currentPage}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>
