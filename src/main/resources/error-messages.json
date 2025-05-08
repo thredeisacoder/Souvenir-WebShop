@@ -79,6 +79,58 @@
     {
       "messageCode": "INVALID_PASSWORD_LENGTH",
       "description": "Mật khẩu phải có ít nhất 8 ký tự"
+    },
+    {
+      "messageCode": "POST_SUCCESS",
+      "description": "Đơn hàng đã được đặt thành công"
+    },
+    {
+      "messageCode": "CONNECT_ERROR",
+      "description": "Lỗi kết nối mạng"
+    },
+    {
+      "messageCode": "CART_ITEM_ADDED",
+      "description": "Sản phẩm đã được thêm vào giỏ hàng"
+    },
+    {
+      "messageCode": "PAYMENT_METHOD_ADDED",
+      "description": "Phương thức thanh toán đã được thêm thành công"
+    },
+    {
+      "messageCode": "PROFILE_UPDATED",
+      "description": "Thông tin tài khoản đã được cập nhật thành công"
+    },
+    {
+      "messageCode": "PASSWORD_CHANGED",
+      "description": "Mật khẩu đã được thay đổi thành công"
+    },
+    {
+      "messageCode": "REGISTRATION_SUCCESS",
+      "description": "Đăng ký tài khoản thành công! Vui lòng đăng nhập."
+    },
+    {
+      "messageCode": "LOGOUT_SUCCESS",
+      "description": "Bạn đã đăng xuất thành công"
+    },
+    {
+      "messageCode": "PAYMENT_ERROR",
+      "description": "Có lỗi xảy ra khi xử lý thanh toán"
+    },
+    {
+      "messageCode": "CART_ERROR",
+      "description": "Không thể thêm sản phẩm vào giỏ hàng"
+    },
+    {
+      "messageCode": "ACCESS_DENIED",
+      "description": "Quyền truy cập bị từ chối"
+    },
+    {
+      "messageCode": "GENERIC_SUCCESS",
+      "description": "Thao tác thành công"
+    },
+    {
+      "messageCode": "GENERIC_ERROR",
+      "description": "Có lỗi xảy ra"
     }
   ]
 } 

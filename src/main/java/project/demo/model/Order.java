@@ -94,7 +94,7 @@ public class Order {
     private List<RevenueReport> revenueReports;
 
     @OneToMany(mappedBy = "order")
-    private List<OrderTimelineEvents> orderTimelineEvents;
+    private List<OrderTimelineEvent> orderTimelineEvents;
 
     public Order() {}
 
@@ -291,11 +291,11 @@ public class Order {
         this.revenueReports = revenueReports;
     }
     
-    public List<OrderTimelineEvents> getOrderTimelineEvents() {
+    public List<OrderTimelineEvent> getOrderTimelineEvents() {
         return orderTimelineEvents;
     }
 
-    public void setOrderTimelineEvents(List<OrderTimelineEvents> orderTimelineEvents) {
+    public void setOrderTimelineEvents(List<OrderTimelineEvent> orderTimelineEvents) {
         this.orderTimelineEvents = orderTimelineEvents;
     }
     

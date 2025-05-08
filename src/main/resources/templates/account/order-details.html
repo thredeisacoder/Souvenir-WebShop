@@ -12,6 +12,31 @@
             margin-bottom: 30px;
         }
         
+        /* Ẩn hiển thị chữ pending ở góc màn hình */
+        .pending {
+            display: none !important;
+        }
+        
+        /* Ẩn luôn chữ pending nào xuất hiện ở góc phải hoặc là một phần riêng biệt */
+        [class*="pending"] {
+            display: none !important;
+        }
+        
+        /* Đặc biệt ẩn bất kỳ phần tử nào chứa text là "pending" và nằm ở góc phải */
+        .d-flex > *:last-child:contains("pending") {
+            display: none !important;
+        }
+        
+        /* Ẩn tất cả các phần tử có content là "pending" */
+        *:not(script):not(style)::after {
+            content: none !important;
+        }
+        
+        /* Ẩn thẻ "pending" ở góc trên phải */
+        .order-detail-container .pending {
+            display: none !important;
+        }
+        
         .order-header {
             padding-bottom: 20px;
             border-bottom: 1px solid #eee;
@@ -289,15 +314,7 @@
         <div class="container">
             <div class="order-detail-container">
                 <!-- Alert Messages -->
-                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <span th:text="${successMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${errorMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                <div th:replace="fragments/messages :: flash-messages"></div>
 
                 <!-- Order Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">

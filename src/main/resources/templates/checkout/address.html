@@ -249,33 +249,7 @@
                 </div>
 
                 <!-- Alert Messages -->
-                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <span th:text="${successMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${errorMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <!-- Alerts for validation errors -->
-                <div th:if="${address_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${address_error}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <div th:if="${city_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${city_error}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <div th:if="${country_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${country_error}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <div th:if="${zipCode_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${zipCode_error}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                <div th:replace="fragments/messages :: flash-messages"></div>
 
                 <!-- Address Selection Section -->
                 <div class="checkout-section">

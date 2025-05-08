@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Fragment for displaying flash messages as toast notifications -->
+    <div th:fragment="flash-messages">
+        <!-- Toast container -->
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <!-- Process messageCode for toast content -->
+            <div th:if="${messageCode != null}" 
+                th:with="messageType=${messageCode.startsWith('CONNECT_') || messageCode.startsWith('CART_ERROR') || 
+                                    messageCode.startsWith('ACCESS_') || messageCode.startsWith('GENERIC_ERROR') ? 
+                                    'danger' : 'success'},
+                        messageText=${@validationErrorMessages.getMessage(messageCode)}"
+                th:class="${'toast align-items-center text-white bg-' + messageType}" 
+                role="alert" 
+                aria-live="assertive" 
+                aria-atomic="true"
+                data-bs-autohide="true"
+                data-bs-delay="3000">
+                <div class="d-flex">
+                    <div class="toast-body" th:text="${messageText}">
+                        Notification message here
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            
+            <!-- Legacy support for direct success messages -->
+            <div th:if="${messageCode == null && successMessage != null}" 
+                class="toast align-items-center text-white bg-success" 
+                role="alert" 
+                aria-live="assertive" 
+                aria-atomic="true"
+                data-bs-autohide="true"
+                data-bs-delay="3000">
+                <div class="d-flex">
+                    <div class="toast-body" th:text="${successMessage}">
+                        Success message here
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            
+            <!-- Legacy support for direct error messages -->
+            <div th:if="${messageCode == null && errorMessage != null}" 
+                class="toast align-items-center text-white bg-danger" 
+                role="alert" 
+                aria-live="assertive" 
+                aria-atomic="true"
+                data-bs-autohide="true"
+                data-bs-delay="3000">
+                <div class="d-flex">
+                    <div class="toast-body" th:text="${errorMessage}">
+                        Error message here
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- JavaScript to show toasts -->
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hiển thị tất cả các toast
+                var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+                toastElList.forEach(function(toastEl) {
+                    new bootstrap.Toast(toastEl).show();
+                });
+            });
+        </script>
+    </div>
+    
+    <!-- Fragment for displaying success messages in confirmation pages -->
+    <div th:fragment="confirmation-message">
+        <div th:if="${messageCode != null}" class="alert alert-info mt-2">
+            <span th:text="${@validationErrorMessages.getMessage(messageCode)}"></span>
+        </div>
+    </div>
+</body>
+</html> 

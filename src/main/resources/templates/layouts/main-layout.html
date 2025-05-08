@@ -30,6 +30,21 @@
     <th:block layout:fragment="css"></th:block>
     
     <style>
+        /* Ẩn hiển thị chữ pending ở bất kỳ đâu trên trang */
+        .pending {
+            display: none !important;
+        }
+        
+        /* Ẩn bất kỳ phần tử nào có class chứa "pending" */
+        [class*="pending"] {
+            display: none !important;
+        }
+        
+        /* Ẩn bất kỳ nội dung text nào là "pending" */
+        *:contains(pending) {
+            display: none !important;
+        }
+        
         /* Basic layout styles - reduced specificity to allow page CSS to override */
         body { 
             font-family: 'Roboto', 'Noto Sans', sans-serif;
@@ -249,5 +264,36 @@
     
     <!-- Individual page scripts -->
     <th:block layout:fragment="script"></th:block>
+    
+    <!-- Script để xóa bỏ chữ "pending" ở góc phải màn hình -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tìm và xóa bỏ mọi phần tử có text là "pending"
+            function removePendingElements() {
+                // Lặp qua tất cả phần tử
+                var allElements = document.querySelectorAll('*');
+                allElements.forEach(function(element) {
+                    // Kiểm tra nếu phần tử chỉ chứa text "pending"
+                    if (element.childNodes.length === 1 && 
+                        element.childNodes[0].nodeType === 3 && 
+                        element.childNodes[0].nodeValue.trim().toLowerCase() === 'pending') {
+                        element.style.display = 'none';
+                    }
+                    
+                    // Hoặc nếu phần tử có class chứa "pending"
+                    if (element.className && element.className.includes('pending')) {
+                        element.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Thực thi ngay khi tải trang
+            removePendingElements();
+            
+            // Đề phòng nội dung được load động sau khi trang load
+            setTimeout(removePendingElements, 500);
+            setTimeout(removePendingElements, 1000);
+        });
+    </script>
 </body>
 </html>

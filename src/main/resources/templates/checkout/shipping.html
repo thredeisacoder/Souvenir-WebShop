@@ -298,15 +298,7 @@
                 </div>
 
                 <!-- Alert Messages -->
-                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <span th:text="${successMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${errorMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                <div th:replace="fragments/messages :: flash-messages"></div>
 
                 <div class="row">
                     <div class="col-lg-8">
@@ -332,10 +324,11 @@
                                 <input type="hidden" id="selectedShippingMethod" name="shippingMethodId" value="">
                                 
                                 <!-- Shipping Method Options -->
-                                <div th:each="method, iterStat : ${shippingMethods}">
-                                    <div th:id="'shipping-card-' + ${method.id}" 
-                                         th:class="${method.id == selectedShippingMethodId ? 'shipping-card selected' : 'shipping-card'}"
-                                         onclick="selectShippingMethod(this, [[${method.id}]])">
+                                <div class="col-md-6" th:each="method : ${shippingMethods}">
+                                    <div th:id="'shipping-card-' + ${method.id}" class="shipping-card" 
+                                         th:classappend="${method.id == selectedShippingMethodId ? 'selected' : ''}"
+                                         th:data-method-id="${method.id}" 
+                                         onclick="selectShippingMethod(this, this.getAttribute('data-method-id'))">
                                         <span th:if="${method.id == selectedShippingMethodId}" class="selected-badge">Đã chọn</span>
                                         <div class="shipping-option">
                                             <div class="shipping-radio">

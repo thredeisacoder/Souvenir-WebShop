@@ -10,7 +10,7 @@ import project.demo.exception.OrderTimelineEventsException;
 import project.demo.exception.ResourceNotFoundException;
 import project.demo.model.OrderTimelineEvent;
 import project.demo.repository.OrderRepository;
-import project.demo.repository.OrderTimelineEventsRepository;
+import project.demo.repository.OrderTimelineEventRepository;
 import project.demo.service.IOrderTimelineEventsService;
 
 /**
@@ -19,12 +19,12 @@ import project.demo.service.IOrderTimelineEventsService;
 @Service
 public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsService {
 
-    private final OrderTimelineEventsRepository orderTimelineEventsRepository;
+    private final OrderTimelineEventRepository orderTimelineEventRepository;
     private final OrderRepository orderRepository;
 
-    public OrderTimelineEventsServiceImpl(OrderTimelineEventsRepository orderTimelineEventsRepository,
+    public OrderTimelineEventsServiceImpl(OrderTimelineEventRepository orderTimelineEventRepository,
                                          OrderRepository orderRepository) {
-        this.orderTimelineEventsRepository = orderTimelineEventsRepository;
+        this.orderTimelineEventRepository = orderTimelineEventRepository;
         this.orderRepository = orderRepository;
     }
 
@@ -33,7 +33,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
      */
     @Override
     public OrderTimelineEvent findById(Long id) {
-        return orderTimelineEventsRepository.findById(id)
+        return orderTimelineEventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ORDER_TIMELINE_EVENT_NOT_FOUND", 
                         "Order timeline event not found with ID: " + id));
     }
@@ -46,7 +46,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
         // Check if order exists
         validateOrderExists(orderId);
         
-        return orderTimelineEventsRepository.findByOrderId(orderId);
+        return orderTimelineEventRepository.findByOrderId(orderId);
     }
 
     /**
@@ -57,7 +57,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
         // Check if order exists
         validateOrderExists(orderId);
         
-        return orderTimelineEventsRepository.findByOrderIdOrderByTimestampDesc(orderId);
+        return orderTimelineEventRepository.findByOrderIdOrderByTimestampDesc(orderId);
     }
 
     /**
@@ -90,7 +90,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
         event.setIconBackgroundColor(iconBackgroundColor);
         event.setTimestamp(timestamp != null ? timestamp : LocalDateTime.now());
         
-        return orderTimelineEventsRepository.save(event);
+        return orderTimelineEventRepository.save(event);
     }
 
     /**
@@ -110,7 +110,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
             event.setTimestamp(LocalDateTime.now());
         }
         
-        return orderTimelineEventsRepository.save(event);
+        return orderTimelineEventRepository.save(event);
     }
 
     /**
@@ -122,7 +122,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
         // Check if event exists
         OrderTimelineEvent event = findById(id);
         
-        orderTimelineEventsRepository.deleteById(id);
+        orderTimelineEventRepository.deleteById(id);
     }
 
     /**
@@ -133,7 +133,7 @@ public class OrderTimelineEventsServiceImpl implements IOrderTimelineEventsServi
         // Check if order exists
         validateOrderExists(orderId);
         
-        List<OrderTimelineEvent> latestEvents = orderTimelineEventsRepository.findFirstByOrderIdOrderByTimestampDesc(orderId);
+        List<OrderTimelineEvent> latestEvents = orderTimelineEventRepository.findFirstByOrderIdOrderByTimestampDesc(orderId);
         if (latestEvents.isEmpty()) {
             throw new ResourceNotFoundException("ORDER_TIMELINE_EVENT_NOT_FOUND", 
                     "No timeline events found for order with ID: " + orderId);

@@ -2,7 +2,7 @@
  * Validation error messages utility
  * Loads error messages from the server and provides functions for validating forms
  */
-class ValidationErrorMessages {
+class ValidationErrorMessages { 
     constructor() {
         this.errorMessages = {};
         this.loaded = false;

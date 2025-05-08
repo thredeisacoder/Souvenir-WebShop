@@ -11,14 +11,7 @@
                 <!-- Thông báo thành công hoặc lỗi -->
                 <div class="row">
                     <div class="col-12">
-                        <div class="alert alert-success alert-dismissible fade show" th:if="${successMessage}" role="alert">
-                            <span th:text="${successMessage}"></span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        <div class="alert alert-danger alert-dismissible fade show" th:if="${errorMessage}" role="alert">
-                            <span th:text="${errorMessage}"></span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                        <div th:replace="fragments/messages :: flash-messages"></div>
                     </div>
                 </div>
                 
@@ -180,19 +173,21 @@
     </main>
     
     <!-- Add JavaScript to ensure form submission works correctly -->
-    <script layout:fragment="script">
-        document.addEventListener('DOMContentLoaded', function() {
-            // Make quantity buttons more responsive
-            const quantityForms = document.querySelectorAll('.quantity-control form');
-            quantityForms.forEach(form => {
-                form.querySelectorAll('button').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        // Submit the form explicitly
-                        this.form.submit();
+    <th:block layout:fragment="script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Make quantity buttons more responsive
+                const quantityForms = document.querySelectorAll('.quantity-control form');
+                quantityForms.forEach(form => {
+                    form.querySelectorAll('button').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            // Submit the form explicitly
+                            this.form.submit();
+                        });
                     });
                 });
             });
-        });
-    </script>
+        </script>
+    </th:block>
 </body>
 </html>

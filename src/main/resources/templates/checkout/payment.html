@@ -337,15 +337,7 @@
                 </div>
 
                 <!-- Alert Messages -->
-                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                    <span th:text="${successMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-
-                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <span th:text="${errorMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                <div th:replace="fragments/messages :: flash-messages"></div>
 
                 <div class="row">
                     <div class="col-lg-8">
@@ -392,7 +384,9 @@
                                 <!-- Lấy danh sách các phương thức thanh toán từ cơ sở dữ liệu để người dùng chọn -->
                                 <div th:if="${paymentMethods != null and !paymentMethods.empty}">
                                     <div th:each="method : ${paymentMethods}" th:id="'payment-card-' + ${method.paymentMethodId}" 
-                                        class="payment-card" th:onclick="'selectPaymentMethod(this, \'' + ${method.paymentMethodId} + '\')'">
+                                        class="payment-card" 
+                                        th:data-method-id="${method.paymentMethodId}"
+                                        onclick="selectPaymentMethod(this, this.getAttribute('data-method-id'))">
                                         <div class="payment-option">
                                             <div class="payment-radio">
                                                 <input type="radio" th:id="'payment-' + ${method.paymentMethodId}" name="payment" 

@@ -776,8 +776,8 @@ public class CheckoutController {
                     cart.getCartId(), 
                     addressId, 
                     databasePaymentMethodId, 
-                    shippingMethodId,  // Truyền shippingMethodId thay vì tên phương thức
-                    orderNote  // Passing orderNote to be saved in Order table
+                    shippingMethodId,
+                    orderNote
                 );
                 
                 if (order == null) {
@@ -788,9 +788,6 @@ public class CheckoutController {
                 System.out.println("Order created successfully with ID: " + order.getOrderId());
                 session.setAttribute("orderId", order.getOrderId());
 
-                // Timeline events are already created in the OrderServiceImpl.createFromCart method
-                // No need to create a duplicate "Order Placed" event here
-                
                 // Update OrderDetail entries to include the note if provided
                 if (orderNote != null && !orderNote.trim().isEmpty()) {
                     System.out.println("Updating OrderDetail entries with note: " + orderNote);
@@ -804,7 +801,8 @@ public class CheckoutController {
             } catch (Exception e) {
                 System.err.println("Error creating order: " + e.getMessage());
                 e.printStackTrace();
-                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi tạo đơn hàng: " + e.getMessage());
+                // Chỉ gán messageCode, không gán errorMessage nữa
+                redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
                 return "redirect:/checkout/confirmation";
             }
             
@@ -858,6 +856,8 @@ public class CheckoutController {
             // Set success information for confirmation page
             model.addAttribute("orderPlaced", true);
             model.addAttribute("orderId", order.getOrderId());
+            // Chỉ gán messageCode, không gán successMessage nữa
+            model.addAttribute("messageCode", "POST_SUCCESS");
             
             System.out.println("=== Completed confirmOrder method successfully ===");
             return "checkout/confirmation";
@@ -865,7 +865,8 @@ public class CheckoutController {
         } catch (Exception e) {
             System.err.println("=== Error in confirmOrder method ===");
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể hoàn tất đơn hàng: " + e.getMessage());
+            // Chỉ gán messageCode, không gán errorMessage nữa
+            redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
             return "redirect:/checkout/confirmation";
         }
     }
