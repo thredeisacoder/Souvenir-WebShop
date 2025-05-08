@@ -629,6 +629,7 @@
     </main>
 
     <th:block layout:fragment="script">
+        <script src="/assets/js/validation-errors.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Pre-select the first address or default address if available
@@ -691,6 +692,21 @@
                     // Submit the form
                     document.getElementById('checkoutForm').submit();
                 });
+
+                // Add validation to the form
+                const checkoutForm = document.getElementById('checkoutForm');
+                if (checkoutForm) {
+                    checkoutForm.addEventListener('submit', function(event) {
+                        // Prevent form submission until validation
+                        event.preventDefault();
+                        
+                        // Check if validation passes
+                        if (validateCheckoutForm(checkoutForm)) {
+                            // Submit the form if validation passes
+                            this.submit();
+                        }
+                    });
+                }
             });
             
             // Function to select address

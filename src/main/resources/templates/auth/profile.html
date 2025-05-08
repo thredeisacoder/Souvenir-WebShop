@@ -113,7 +113,8 @@
                                         
                                         <!-- Hiển thị địa chỉ mặc định -->
                                         <div th:if="${addresses != null && !#lists.isEmpty(addresses)}" class="address-item mb-3" 
-                                             th:with="defaultAddress=${addresses.?[getIsDefault() == true]?.get(0)}">
+                                             th:with="filteredAddresses=${addresses.?[getIsDefault() == true]},
+                                                      defaultAddress=${!#lists.isEmpty(filteredAddresses) ? filteredAddresses[0] : null}">
                                             <div th:if="${defaultAddress != null}" class="card border-success">
                                                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                                                     <strong>Địa chỉ mặc định</strong>

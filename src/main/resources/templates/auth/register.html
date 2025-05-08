@@ -207,23 +207,29 @@
                                 </a>
                             </div>
                             <div class="auth-body">
-                                <form class="auth-form" th:action="@{/auth/register}" method="post">
+                                <div th:if="${errorMessage}" class="alert alert-danger mb-3" th:text="${errorMessage}"></div>
+                                <form class="auth-form" th:action="@{/auth/register}" method="post" th:object="${customer}">
                                     <div class="mb-3">
-                                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''">
+                                        <div class="text-danger invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                                     </div>
                                     <div class="mb-3">
-                                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Full Name" required>
+                                        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Họ và tên" required th:field="*{fullName}" th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''">
+                                        <div class="text-danger invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
                                     </div>
                                     <div class="mb-3">
-                                        <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="Phone Number" required>
+                                        <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" placeholder="Số điện thoại" required th:field="*{phoneNumber}" th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid' : ''">
+                                        <div class="text-danger invalid-feedback" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
                                     </div>
                                     <div class="mb-3">
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Mật khẩu" required th:field="*{password}" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''">
+                                        <div class="text-danger invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                                     </div>
                                     <div class="mb-3">
-                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Xác nhận mật khẩu" required th:classappend="${confirmPasswordError != null} ? 'is-invalid' : ''">
+                                        <div class="text-danger invalid-feedback" th:if="${confirmPasswordError}" th:text="${confirmPasswordError}"></div>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                                    <button type="submit" class="btn btn-primary">Đăng ký</button>
                                 </form>
                                 
                                 <div class="auth-divider">
@@ -252,4 +258,6 @@
         </section>
     </main>
 </body>
+<script th:src="@{/assets/js/validation-errors.js}"></script>
+<script th:src="@{/assets/js/register-validation.js}"></script>
 </html>

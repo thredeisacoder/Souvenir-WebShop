@@ -1,10 +1,14 @@
 package project.demo.service.implement;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import project.demo.exception.ProductException;
 import project.demo.exception.ResourceNotFoundException;
 import project.demo.model.Product;
@@ -14,10 +18,6 @@ import project.demo.repository.OrderDetailRepository;
 import project.demo.repository.ProductDetailRepository;
 import project.demo.repository.ProductRepository;
 import project.demo.service.IProductService;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Implementation of the IProductService interface for managing Product entities
@@ -324,24 +324,8 @@ public class ProductServiceImpl implements IProductService {
 
         // For debugging
         System.out.println("Searching for products with keyword: " + keyword);
-
-        // Use a more comprehensive search that includes both name and description
-        List<Product> products = productRepository.searchByNameOrDescription(keyword);
-
-        // For debugging
-        System.out.println("Found " + products.size() + " products matching the search term");
-        if (!products.isEmpty()) {
-            System.out.println("First product: " + products.get(0).getProductName());
-        }
-
-        // Calculate the content for the current page
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), products.size());
-
-        // Create a sublist for the current page
-        List<Product> pageContent = start < end ? products.subList(start, end) : List.of();
-
-        // Return a Page implementation with the content
-        return new PageImpl<>(pageContent, pageable, products.size());
+        
+        // Sử dụng trực tiếp repository để tìm kiếm với phân trang
+        return productRepository.searchByNameOrDescriptionPaginated(keyword, pageable);
     }
 }

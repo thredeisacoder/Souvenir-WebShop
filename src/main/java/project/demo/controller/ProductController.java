@@ -46,7 +46,7 @@ public class ProductController {
      */
     @GetMapping
     public String listProducts(
-            @RequestParam(required = false) Integer category,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String query, // For search from /products/search
             @RequestParam(required = false) List<String> priceRange, // Khoảng giá để lọc
@@ -56,36 +56,57 @@ public class ProductController {
             @RequestParam(defaultValue = "asc") String direction,
             Model model) {
 
+        // Xử lý các tham số rỗng
+        Integer categoryId = null;
+        if (category != null && !category.trim().isEmpty()) {
+            try {
+                categoryId = Integer.parseInt(category);
+            } catch (NumberFormatException e) {
+                // Bỏ qua nếu category không phải số hợp lệ
+            }
+        }
+        
+        if (query != null && query.trim().isEmpty()) {
+            query = null;
+        }
+        
+        if (search != null && search.trim().isEmpty()) {
+            search = null;
+        }
+
         // If query parameter is provided (from search form), use it as search term
         if (query != null && !query.trim().isEmpty()) {
             search = query;
         }
 
-        // Tăng kích thước trang để đảm bảo lấy đủ sản phẩm sau khi lọc
-        int adjustedPageSize = size * 3; // Tăng gấp 3 để đảm bảo đủ sản phẩm sau khi lọc
-        
         // Create Pageable object with sorting
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, adjustedPageSize, Sort.by(sortDirection, sort));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
 
         // Get products based on filters
         Page<Product> productPage;
 
-        if (category != null) {
-            // Filter by category with pagination
-            productPage = productService.findByCatalogIdPaginated(category, pageable);
-            model.addAttribute("selectedCategory", catalogService.findById(category));
-        } else if (search != null && !search.trim().isEmpty()) {
-            // Search by name with pagination
-            productPage = productService.searchByNamePaginated(search, pageable);
-            model.addAttribute("searchTerm", search);
-        } else {
-            // Get all products with pagination
-            productPage = productService.findAllPaginated(pageable);
+        try {
+            if (categoryId != null) {
+                // Filter by category with pagination
+                productPage = productService.findByCatalogIdPaginated(categoryId, pageable);
+                model.addAttribute("selectedCategory", catalogService.findById(categoryId));
+            } else if (search != null && !search.trim().isEmpty()) {
+                // Search by name with pagination
+                productPage = productService.searchByNamePaginated(search, pageable);
+                model.addAttribute("searchTerm", search);
+            } else {
+                // Get all products with pagination
+                productPage = productService.findAllPaginated(pageable);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "Error loading products: " + e.getMessage());
+            productPage = Page.empty(pageable);
         }
 
         List<Product> products = productPage.getContent();
-        List<Product> inStockProducts = new java.util.ArrayList<>();
+        List<Product> filteredProducts = new java.util.ArrayList<>();
 
         // Get product images, discount prices, and stock information
         Map<Integer, String> productImages = new HashMap<>();
@@ -132,58 +153,35 @@ public class ProductController {
                     
                     // Lấy giá hiển thị (giá khuyến mãi nếu có, nếu không thì giá gốc)
                     BigDecimal displayPrice = detail.getDiscountPrice() != null ? 
-                                             detail.getDiscountPrice() : 
-                                             product.getPrice();
+                                            detail.getDiscountPrice() : 
+                                            product.getPrice();
                     
-                    // Chỉ thêm sản phẩm còn hàng vào danh sách hiển thị
-                    if (inStock) {
-                        // Nếu có lọc giá, chỉ thêm sản phẩm trong khoảng giá hiệu quả
-                        if (effectivePriceRange != null) {
-                            double productPrice = displayPrice.doubleValue();
-                            
-                            // Kiểm tra nếu giá sản phẩm nằm trong khoảng giá hiệu quả
-                            if (productPrice >= effectivePriceRange[0] && productPrice <= effectivePriceRange[1]) {
-                                inStockProducts.add(product);
-                            }
-                        } else {
-                            // Không có lọc giá, thêm tất cả sản phẩm còn hàng
-                            inStockProducts.add(product);
+                    // Thêm sản phẩm vào danh sách hiển thị không phụ thuộc tình trạng tồn kho
+                    // Chỉ lọc theo khoảng giá nếu có
+                    if (effectivePriceRange != null) {
+                        double productPrice = displayPrice.doubleValue();
+                        
+                        // Kiểm tra nếu giá sản phẩm nằm trong khoảng giá hiệu quả
+                        if (productPrice >= effectivePriceRange[0] && productPrice <= effectivePriceRange[1]) {
+                            filteredProducts.add(product);
                         }
+                    } else {
+                        // Không có lọc giá, thêm tất cả sản phẩm
+                        filteredProducts.add(product);
                     }
                 }
             } catch (Exception e) {
-                // If product detail not found, skip this product
+                // If product detail not found, still add the product but mark as out of stock
                 productStockStatus.put(product.getProductId(), false);
-                // Không thêm sản phẩm không có thông tin (có thể hết hàng)
+                filteredProducts.add(product);
             }
         }
-
-        // Xử lý phân trang cho danh sách sản phẩm còn hàng
-        int startIndex = page * size;
-        int endIndex = Math.min(startIndex + size, inStockProducts.size());
-        
-        // Đảm bảo không vượt quá giới hạn của danh sách
-        if (startIndex >= inStockProducts.size()) {
-            startIndex = Math.max(0, inStockProducts.size() - size);
-            endIndex = inStockProducts.size();
-            // Nếu trang hiện tại vượt quá số trang thực tế, điều chỉnh lại
-            if (page > 0 && startIndex == 0) {
-                return "redirect:/products?page=0&size=" + size + "&sort=" + sort + "&direction=" + direction + 
-                       (category != null ? "&category=" + category : "") + 
-                       (search != null ? "&query=" + search : "") +
-                       getPriceRangeParams(priceRange);
-            }
-        }
-        
-        List<Product> pagedProducts = startIndex < endIndex ? 
-                                     inStockProducts.subList(startIndex, endIndex) : 
-                                     new java.util.ArrayList<>();
 
         // Get all categories for the filter dropdown
         List<Catalog> categories = catalogService.findAllActive();
 
         // Add data to the model
-        model.addAttribute("products", pagedProducts);
+        model.addAttribute("products", filteredProducts);
         model.addAttribute("productImages", productImages);
         model.addAttribute("productDiscountPrices", productDiscountPrices);
         model.addAttribute("productStockStatus", productStockStatus);
@@ -194,11 +192,14 @@ public class ProductController {
 
         // Add pagination data
         model.addAttribute("currentPage", page + 1); // Convert to 1-based for display
-        int totalItems = inStockProducts.size();
-        int calculatedTotalPages = (int) Math.ceil((double) totalItems / size);
-        model.addAttribute("totalPages", calculatedTotalPages > 0 ? calculatedTotalPages : 1);
-        model.addAttribute("totalProducts", totalItems);
+        model.addAttribute("totalPages", Math.max(1, productPage.getTotalPages()));
+        model.addAttribute("totalProducts", productPage.getTotalElements());
         model.addAttribute("pageSize", size);
+        
+        // Thêm thông báo nếu không có sản phẩm
+        if (filteredProducts.isEmpty()) {
+            model.addAttribute("noProductsMessage", "Không tìm thấy sản phẩm nào.");
+        }
 
         // Add sorting data
         model.addAttribute("sortField", sort);
@@ -335,6 +336,7 @@ public class ProductController {
         System.out.println("Search endpoint called with query: " + query);
 
         // Truyền null cho tham số priceRange (không áp dụng lọc giá cho tìm kiếm)
-        return listProducts(null, null, query, null, page, size, sort, direction, model);
+        // Đảm bảo chuyển query thành String để xử lý đúng
+        return listProducts(null, null, query.trim().isEmpty() ? null : query, null, page, size, sort, direction, model);
     }
 }

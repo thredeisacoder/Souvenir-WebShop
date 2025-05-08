@@ -227,20 +227,37 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Hiển thị thông báo lỗi -->
+                        <div th:if="${addressLine_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${addressLine_error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div th:if="${city_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${city_error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div th:if="${country_error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${country_error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        
                         <form id="addAddressForm" th:action="@{/account/addresses/add}" method="post">
                             <input type="hidden" name="addressLine" id="combinedAddressLine">
                             <div class="form-group mb-3">
                                 <label for="streetAddress" class="form-label">Số nhà, tên đường <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="streetAddress" name="streetAddress" placeholder="Số nhà, tên đường..." required>
+                                <div class="invalid-feedback" id="streetAddress-error"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="wardCommune" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="wardCommune" name="wardCommune" placeholder="Phường/Xã..." required>
+                                    <div class="invalid-feedback" id="wardCommune-error"></div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="district" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="district" name="district" placeholder="Quận/Huyện..." required>
+                                    <div class="invalid-feedback" id="district-error"></div>
                                 </div>
                             </div>
                             <div class="row">
@@ -312,6 +329,7 @@
                                         <option value="Vĩnh Phúc">Vĩnh Phúc</option>
                                         <option value="Yên Bái">Yên Bái</option>
                                     </select>
+                                    <div class="invalid-feedback" id="provinceCity-error"></div>
                                 </div>
                             <div class="col-md-6 mb-3">
                                     <label for="country" class="form-label">Quốc gia <span class="text-danger">*</span></label>
@@ -321,11 +339,13 @@
                                                 th:value="${c}" th:text="${c}" th:selected="${c == 'Việt Nam'}"></option>
                                         <option th:if="${countries == null}" value="Việt Nam" selected>Việt Nam</option>
                                     </select>
+                                    <div class="invalid-feedback" id="country-error"></div>
                                 </div>
                             </div>
                             <div class="form-group mb-3">
                                 <label for="zipCode" class="form-label">Mã bưu điện <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="zipCode" name="zipCode" placeholder="Mã bưu điện" required>
+                                <div class="invalid-feedback" id="zipCode-error"></div>
                             </div>
                             <div class="form-check mb-3">
                                 <input type="checkbox" class="form-check-input" id="isDefault" name="isDefault">
@@ -356,15 +376,18 @@
                             <div class="form-group mb-3">
                                 <label for="editStreetAddress" class="form-label">Số nhà, tên đường <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editStreetAddress" name="editStreetAddress" placeholder="Số nhà, tên đường..." required>
+                                <div class="invalid-feedback" id="editStreetAddress-error"></div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="editWardCommune" class="form-label">Phường/Xã <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="editWardCommune" name="editWardCommune" placeholder="Phường/Xã..." required>
+                                    <div class="invalid-feedback" id="editWardCommune-error"></div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="editDistrict" class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="editDistrict" name="editDistrict" placeholder="Quận/Huyện..." required>
+                                    <div class="invalid-feedback" id="editDistrict-error"></div>
                                 </div>
                             </div>
                             <div class="row">
@@ -436,6 +459,7 @@
                                         <option value="Vĩnh Phúc">Vĩnh Phúc</option>
                                         <option value="Yên Bái">Yên Bái</option>
                                     </select>
+                                    <div class="invalid-feedback" id="editProvinceCity-error"></div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="editCountry" class="form-label">Quốc gia <span class="text-danger">*</span></label>
@@ -445,11 +469,13 @@
                                                 th:value="${c}" th:text="${c}"></option>
                                         <option th:if="${countries == null}" value="Việt Nam">Việt Nam</option>
                                     </select>
+                                    <div class="invalid-feedback" id="editCountry-error"></div>
                                 </div>
                             </div>
                             <div class="form-group mb-3">
                                 <label for="editZipCode" class="form-label">Mã bưu điện <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editZipCode" name="zipCode" placeholder="Mã bưu điện" required>
+                                <div class="invalid-feedback" id="editZipCode-error"></div>
                             </div>
                         </form>
                     </div>
@@ -491,58 +517,8 @@
     </main>
 
     <th:block layout:fragment="script">
+        <script th:src="@{/assets/js/address-validation.js}"></script>
         <script>
-            // Function to combine address components into a single address line
-            function combineAddressComponents() {
-                const streetAddress = document.getElementById('streetAddress').value.trim();
-                const wardCommune = document.getElementById('wardCommune').value.trim();
-                const district = document.getElementById('district').value.trim();
-                
-                // Combine the components into a single address line
-                const combinedAddress = `${streetAddress}, ${wardCommune}, ${district}`;
-                document.getElementById('combinedAddressLine').value = combinedAddress;
-            }
-            
-            // Function to combine address components for edit form
-            function combineEditAddressComponents() {
-                const streetAddress = document.getElementById('editStreetAddress').value.trim();
-                const wardCommune = document.getElementById('editWardCommune').value.trim();
-                const district = document.getElementById('editDistrict').value.trim();
-                
-                // Combine the components into a single address line
-                const combinedAddress = `${streetAddress}, ${wardCommune}, ${district}`;
-                document.getElementById('editCombinedAddressLine').value = combinedAddress;
-            }
-            
-            // Add event listeners to the forms
-            document.addEventListener('DOMContentLoaded', function() {
-                const addAddressForm = document.getElementById('addAddressForm');
-                if (addAddressForm) {
-                    // Gắn sự kiện cho nút submit thay vì form
-                    document.querySelector('button[form="addAddressForm"]').addEventListener('click', function(event) {
-                        // Ngăn việc gửi form trực tiếp
-                        event.preventDefault();
-                        // Kết hợp các trường địa chỉ
-                        combineAddressComponents();
-                        // Gửi form sau khi đã kết hợp
-                        addAddressForm.submit();
-                    });
-                }
-                
-                const editAddressForm = document.getElementById('editAddressForm');
-                if (editAddressForm) {
-                    // Gắn sự kiện cho nút submit thay vì form
-                    document.querySelector('button[form="editAddressForm"]').addEventListener('click', function(event) {
-                        // Ngăn việc gửi form trực tiếp
-                        event.preventDefault();
-                        // Kết hợp các trường địa chỉ
-                        combineEditAddressComponents();
-                        // Gửi form sau khi đã kết hợp
-                        editAddressForm.submit();
-                    });
-                }
-            });
-            
             // Function to parse an address line into components for editing
             function parseAddressLine(addressLine) {
                 if (!addressLine) return { street: '', ward: '', district: '' };

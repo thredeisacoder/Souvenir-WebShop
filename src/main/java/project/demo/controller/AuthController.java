@@ -493,25 +493,28 @@ public class AuthController {
      */
     private void validateCustomer(Customer customer, BindingResult result) {
         if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
-            result.rejectValue("fullName", "error.customer", "Full name is required");
+            result.rejectValue("fullName", "INVALID_NAME", "Trường hợp chưa nhập họ và tên");
+        } else if (customer.getFullName().matches(".*\\d.*")) {
+            // Kiểm tra nếu tên chứa số
+            result.rejectValue("fullName", "INVALID_NAME_WITH_DIGITS", "Họ và tên không được chứa số");
         }
 
         if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
-            result.rejectValue("email", "error.customer", "Email is required");
+            result.rejectValue("email", "INVALID_EMAIL", "Trường hợp chưa nhập Email");
         } else if (!EMAIL_PATTERN.matcher(customer.getEmail()).matches()) {
-            result.rejectValue("email", "error.customer", "Invalid email format");
+            result.rejectValue("email", "INVALID_EMAIL_FORMAT", "Trường hợp nhập Email không đúng định dạng");
         }
 
         if (customer.getPhoneNumber() == null || customer.getPhoneNumber().trim().isEmpty()) {
-            result.rejectValue("phoneNumber", "error.customer", "Phone number is required");
+            result.rejectValue("phoneNumber", "INVALID_PHONE", "Trường hợp chưa nhập số điện thoại");
         } else if (!PHONE_PATTERN.matcher(customer.getPhoneNumber()).matches()) {
-            result.rejectValue("phoneNumber", "error.customer", "Invalid phone number format");
+            result.rejectValue("phoneNumber", "NUMBER_PHONE_ERROR", "Trường hợp số điện thoại không phải là 10 hoặc 11 số");
         }
 
         if (customer.getPassword() == null || customer.getPassword().trim().isEmpty()) {
-            result.rejectValue("password", "error.customer", "Password is required");
+            result.rejectValue("password", "INVALID_PASSWORD", "Trường hợp chưa nhập mật khẩu");
         } else if (!PASSWORD_PATTERN.matcher(customer.getPassword()).matches()) {
-            result.rejectValue("password", "error.customer", "Password must be at least 8 characters");
+            result.rejectValue("password", "INVALID_PASSWORD_LENGTH", "Mật khẩu phải có ít nhất 8 ký tự");
         }
     }
 
@@ -520,19 +523,22 @@ public class AuthController {
      */
     private void validateProfileUpdate(Customer customer, BindingResult result) {
         if (customer.getFullName() == null || customer.getFullName().trim().isEmpty()) {
-            result.rejectValue("fullName", "error.customer", "Full name is required");
+            result.rejectValue("fullName", "INVALID_NAME", "Trường hợp chưa nhập họ và tên");
+        } else if (customer.getFullName().matches(".*\\d.*")) {
+            // Kiểm tra nếu tên chứa số
+            result.rejectValue("fullName", "INVALID_NAME_WITH_DIGITS", "Họ và tên không được chứa số");
         }
 
         if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
-            result.rejectValue("email", "error.customer", "Email is required");
+            result.rejectValue("email", "INVALID_EMAIL", "Trường hợp chưa nhập Email");
         } else if (!EMAIL_PATTERN.matcher(customer.getEmail()).matches()) {
-            result.rejectValue("email", "error.customer", "Invalid email format");
+            result.rejectValue("email", "INVALID_EMAIL_FORMAT", "Trường hợp nhập Email không đúng định dạng");
         }
 
         if (customer.getPhoneNumber() == null || customer.getPhoneNumber().trim().isEmpty()) {
-            result.rejectValue("phoneNumber", "error.customer", "Phone number is required");
+            result.rejectValue("phoneNumber", "INVALID_PHONE", "Trường hợp chưa nhập số điện thoại");
         } else if (!PHONE_PATTERN.matcher(customer.getPhoneNumber()).matches()) {
-            result.rejectValue("phoneNumber", "error.customer", "Invalid phone number format");
+            result.rejectValue("phoneNumber", "NUMBER_PHONE_ERROR", "Trường hợp số điện thoại không phải là 10 hoặc 11 số");
         }
     }
 }

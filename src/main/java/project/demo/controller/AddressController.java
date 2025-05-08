@@ -1,6 +1,8 @@
 package project.demo.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +20,7 @@ import project.demo.model.Address;
 import project.demo.model.Customer;
 import project.demo.service.IAddressService;
 import project.demo.service.ICustomerService;
+import project.demo.util.ValidationErrorMessages;
 
 /**
  * Controller for managing customer addresses
@@ -28,6 +31,9 @@ public class AddressController {
 
     private final IAddressService addressService;
     private final ICustomerService customerService;
+    
+    @Autowired
+    private ValidationErrorMessages validationErrorMessages;
 
     @Autowired
     public AddressController(IAddressService addressService, ICustomerService customerService) {
@@ -67,33 +73,57 @@ public class AddressController {
      * Process the add address form 
      */
     @PostMapping("/add")
-    public String addAddress(@ModelAttribute Address address, HttpSession session,
-            RedirectAttributes redirectAttributes) {
+    public String addAddress(@ModelAttribute Address address, HttpSession session, RedirectAttributes redirectAttributes) {
         // Check if user is logged in
         if (session.getAttribute("isLoggedIn") == null || !(Boolean) session.getAttribute("isLoggedIn")) {
-            redirectAttributes.addFlashAttribute("loginMessage", "Please log in to add an address");
+            redirectAttributes.addFlashAttribute("loginMessage", "Vui lòng đăng nhập để thêm địa chỉ mới");
             return "redirect:/auth/login?redirect=/account/addresses";
         }
 
         try {
+            // Get customer from session
             Customer customer = (Customer) session.getAttribute("customer");
             if (customer == null) {
-                throw new CustomerException("CUSTOMER_NOT_FOUND", "Customer not found in session");
+                throw new CustomerException("CUSTOMER_NOT_FOUND", "Không tìm thấy thông tin khách hàng trong phiên");
             }
 
+            // Set the customer ID on the address
             address.setCustomerId(customer.getCustomerId());
 
-            // If this is the first address or isDefault is checked, set it as default
-            List<Address> existingAddresses = addressService.findByCustomerId(customer.getCustomerId());
-            if (existingAddresses.isEmpty() || (address.getIsDefault() != null && address.getIsDefault())) {
-                address.setIsDefault(true);
+            // Validate required fields
+            Map<String, String> errors = new HashMap<>();
+            
+            if (address.getAddressLine() == null || address.getAddressLine().trim().isEmpty()) {
+                errors.put("addressLine", validationErrorMessages.getMessage("INVALID_ADDRESSLINE"));
+            }
+            
+            if (address.getCity() == null || address.getCity().trim().isEmpty()) {
+                errors.put("city", validationErrorMessages.getMessage("INVALID_PROVINCE_CITY"));
+            }
+            
+            if (address.getCountry() == null || address.getCountry().trim().isEmpty()) {
+                errors.put("country", validationErrorMessages.getMessage("INVALID_COUNTRY"));
+            }
+            
+            if (!errors.isEmpty()) {
+                for (Map.Entry<String, String> error : errors.entrySet()) {
+                    redirectAttributes.addFlashAttribute(error.getKey() + "_error", error.getValue());
+                }
+                return "redirect:/account/addresses";
             }
 
-            addressService.save(address);
-            redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được thêm thành công.");
+            // Save the address
+            address = addressService.save(address);
+            
+            // Handle default setting
+            if (Boolean.TRUE.equals(address.getIsDefault())) {
+                addressService.setAsDefault(address.getAddressId(), customer.getCustomerId());
+            }
+
+            redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được thêm thành công");
             return "redirect:/account/addresses";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account/addresses";
         }
     }

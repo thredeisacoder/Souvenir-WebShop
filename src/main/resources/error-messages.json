@@ -1,0 +1,84 @@
+{
+  "errors": [
+    {
+      "messageCode": "INVALID_ADDRESSLINE",
+      "description": "Trường hợp chưa nhập số nhà, tên đường"
+    },
+    {
+      "messageCode": "INVALID_WARD_COMMUNE",
+      "description": "Trường hợp chưa nhập phường/xã"
+    },
+    {
+      "messageCode": "INVALID_DISTRICT",
+      "description": "Trường hợp chưa nhập quận/huyện"
+    },
+    {
+      "messageCode": "INVALID_ZIPCODE",
+      "description": "Trường hợp nhập mã bưu điện"
+    },
+    {
+      "messageCode": "INVALID_PROVINCE_CITY",
+      "description": "Trường hợp chưa chọn tỉnh/thành phố"
+    },
+    {
+      "messageCode": "INVALID_COUNTRY",
+      "description": "Trường hợp chọn quốc gia"
+    },
+    {
+      "messageCode": "INVALID_NAME",
+      "description": "Trường hợp chưa nhập họ và tên"
+    },
+    {
+      "messageCode": "INVALID_NAME_WITH_DIGITS",
+      "description": "Họ và tên không được chứa số"
+    },
+    {
+      "messageCode": "INVALID_EMAIL",
+      "description": "Trường hợp chưa nhập Email"
+    },
+    {
+      "messageCode": "INVALID_EMAIL_FORMAT",
+      "description": "Trường hợp nhập Email không đúng định dạng"
+    },
+    {
+      "messageCode": "INVALID_PHONE",
+      "description": "Trường hợp chưa nhập số điện thoại"
+    },
+    {
+      "messageCode": "NUMBER_PHONE_ERROR",
+      "description": "Trường hợp số điện thoại không phải là 10 hoặc 11 số"
+    },
+    {
+      "messageCode": "INVALID_ADDRESS",
+      "description": "Trường hợp chưa nhập địa chỉ"
+    },
+    {
+      "messageCode": "ACCOUNT_NOT_FOUND",
+      "description": "Tài khoản không tìm thấy"
+    },
+    {
+      "messageCode": "PRODUCT_OUT_OF_STOCK",
+      "description": "Số lượng sản phẩm không đủ/hết hàng"
+    },
+    {
+      "messageCode": "INVALID_CARD_NUMBER",
+      "description": "Số thẻ không hợp lệ"
+    },
+    {
+      "messageCode": "INVALID_EXPIRATION_DATE",
+      "description": "Ngày hết hạn không hợp lệ (định dạng MM/YY)"
+    },
+    {
+      "messageCode": "INVALID_SECURITY_CODE",
+      "description": "Mã bảo mật không hợp lệ (3-4 chữ số)"
+    },
+    {
+      "messageCode": "INVALID_PASSWORD",
+      "description": "Trường hợp chưa nhập mật khẩu"
+    },
+    {
+      "messageCode": "INVALID_PASSWORD_LENGTH",
+      "description": "Mật khẩu phải có ít nhất 8 ký tự"
+    }
+  ]
+} 

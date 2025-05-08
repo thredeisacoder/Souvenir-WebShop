@@ -206,11 +206,12 @@
                     <div class="category-filter">
                         <h5>Danh mục</h5>
                         <div class="list-group">
-                            <a href="/products" class="list-group-item list-group-item-action" th:classappend="${selectedCategory == null} ? 'active' : ''">
+                            <a href="javascript:void(0)" onclick="navigateToAllProducts()" class="list-group-item list-group-item-action" th:classappend="${selectedCategory == null} ? 'active' : ''">
                                 Tất cả sản phẩm
                             </a>
                             <a th:each="category : ${categories}" 
-                               th:href="@{/products(category=${category.catalogId})}" 
+                               href="javascript:void(0)"
+                               th:onclick="'navigateToCategory(' + ${category.catalogId} + ')'"
                                th:text="${category.catalogName}"
                                class="list-group-item list-group-item-action"
                                th:classappend="${selectedCategory != null && selectedCategory.catalogId == category.catalogId} ? 'active' : ''">
@@ -221,13 +222,7 @@
                     <!-- Price Filter -->
                     <div class="category-filter">
                         <h5>Giá</h5>
-                        <form id="priceFilterForm" th:action="@{/products}" method="get">
-                            <!-- Giữ lại các tham số hiện tại -->
-                            <input type="hidden" name="category" th:if="${param.category}" th:value="${param.category[0]}">
-                            <input type="hidden" name="sort" th:if="${sortField}" th:value="${sortField}">
-                            <input type="hidden" name="direction" th:if="${sortDirection}" th:value="${sortDirection}">
-                            <input type="hidden" name="query" th:if="${searchTerm}" th:value="${searchTerm}">
-                            
+                        <form id="priceFilterForm" onsubmit="return submitPriceFilter(event)">
                             <div class="form-check">
                                 <input class="form-check-input price-filter" type="checkbox" name="priceRange" value="0-100000" id="price1" th:checked="${selectedPriceRanges != null && #lists.contains(selectedPriceRanges, '0-100000')}">
                                 <label class="form-check-label" for="price1">
@@ -254,9 +249,9 @@
                             </div>
                             <div class="mt-3">
                                 <button type="submit" class="btn btn-sm btn-primary">Lọc giá</button>
-                                <a th:href="@{/products(category=${param.category}, sort=${sortField}, direction=${sortDirection}, query=${searchTerm})}" 
+                                <button type="button" onclick="clearFilters()" 
                                    th:if="${selectedPriceRanges != null && !selectedPriceRanges.isEmpty()}"
-                                   class="btn btn-sm btn-outline-secondary ms-1">Xóa lọc</a>
+                                   class="btn btn-sm btn-outline-secondary ms-1">Xóa lọc</button>
                             </div>
                         </form>
                     </div>
@@ -269,9 +264,9 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <form th:action="@{/products/search}" method="get" class="mb-3 mb-md-0">
+                                    <form onsubmit="return submitSearch(event)" class="mb-3 mb-md-0">
                                         <div class="input-group">
-                                            <input type="text" name="query" class="form-control" placeholder="Tìm kiếm sản phẩm..." th:value="${searchTerm}">
+                                            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sản phẩm..." th:value="${searchTerm}">
                                             <button class="btn btn-primary" type="submit">
                                                 <i class="fas fa-search"></i>
                                             </button>
@@ -280,12 +275,12 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="d-flex justify-content-md-end">
-                                        <select class="form-select w-auto" onchange="window.location = this.value;">
+                                        <select class="form-select w-auto" id="sortSelect" onchange="changeSort(this.value)">
                                             <option value="" selected>Sắp xếp theo</option>
-                                            <option th:value="@{/products(sort='productName',direction='asc',category=${param.category})}" th:selected="${sortField == 'productName' && sortDirection == 'asc'}">Tên A-Z</option>
-                                            <option th:value="@{/products(sort='productName',direction='desc',category=${param.category})}" th:selected="${sortField == 'productName' && sortDirection == 'desc'}">Tên Z-A</option>
-                                            <option th:value="@{/products(sort='price',direction='asc',category=${param.category})}" th:selected="${sortField == 'price' && sortDirection == 'asc'}">Giá tăng dần</option>
-                                            <option th:value="@{/products(sort='price',direction='desc',category=${param.category})}" th:selected="${sortField == 'price' && sortDirection == 'desc'}">Giá giảm dần</option>
+                                            <option value="productName,asc" th:selected="${sortField == 'productName' && sortDirection == 'asc'}">Tên A-Z</option>
+                                            <option value="productName,desc" th:selected="${sortField == 'productName' && sortDirection == 'desc'}">Tên Z-A</option>
+                                            <option value="price,asc" th:selected="${sortField == 'price' && sortDirection == 'asc'}">Giá tăng dần</option>
+                                            <option value="price,desc" th:selected="${sortField == 'price' && sortDirection == 'desc'}">Giá giảm dần</option>
                                         </select>
                                     </div>
                                 </div>
@@ -306,7 +301,7 @@
                     
                     <!-- No Products Found -->
                     <div th:if="${#lists.isEmpty(products)}" class="alert alert-warning">
-                        Không tìm thấy sản phẩm nào.
+                        <span th:text="${noProductsMessage != null ? noProductsMessage : 'Không tìm thấy sản phẩm nào.'}"></span>
                     </div>
                     
                     <!-- Products Grid -->
@@ -347,25 +342,42 @@
                         </div>
                     </div>
                     
+                    <!-- Debug Info -->
+                    <div class="mb-3 d-none">
+                        <p>Debug info:</p>
+                        <ul>
+                            <li>currentPage: <span th:text="${currentPage}"></span></li>
+                            <li>totalPages: <span th:text="${totalPages}"></span></li>
+                            <li>pageSize: <span th:text="${pageSize}"></span></li>
+                            <li>totalProducts: <span th:text="${totalProducts}"></span></li>
+                        </ul>
+                    </div>
+                    
                     <!-- Pagination -->
                     <div th:if="${totalPages > 1}" class="pagination-container">
                         <nav aria-label="Page navigation">
                             <ul class="pagination">
                                 <!-- Previous Page Button -->
                                 <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${currentPage - 2}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" aria-label="Previous">
+                                    <a class="page-link" href="javascript:void(0)" 
+                                       th:onclick="${currentPage > 1} ? 'goToPage(' + (${currentPage - 2}) + ')' : 'return false;'"
+                                       aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
                                 
                                 <!-- Page Numbers -->
                                 <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${i - 1}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" th:text="${i}"></a>
+                                    <a class="page-link" href="javascript:void(0)" 
+                                       th:onclick="'goToPage(' + (${i - 1}) + ')'"
+                                       th:text="${i}"></a>
                                 </li>
                                 
                                 <!-- Next Page Button -->
                                 <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
-                                    <a class="page-link" th:href="@{/products(page=${currentPage}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}, category=${param.category}, query=${searchTerm})}" aria-label="Next">
+                                    <a class="page-link" href="javascript:void(0)" 
+                                       th:onclick="${currentPage < totalPages} ? 'goToPage(' + ${currentPage} + ')' : 'return false;'"
+                                       aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>
@@ -375,6 +387,258 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Helper script cho các chức năng JavaScript bổ sung -->
+        <script th:inline="javascript">
+            function getPriceRangeParamsJS(priceRanges) {
+                if (!priceRanges || priceRanges.length === 0) {
+                    return '';
+                }
+                
+                let result = '';
+                for (let i = 0; i < priceRanges.length; i++) {
+                    result += '&priceRange=' + priceRanges[i];
+                }
+                return result;
+            }
+            
+            // Hàm xử lý sắp xếp không có tham số rỗng
+            document.addEventListener('DOMContentLoaded', function() {
+                const sortSelect = document.getElementById('sortSelect');
+                
+                sortSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        const [sort, direction] = this.value.split(',');
+                        
+                        // Xây dựng URL cơ bản
+                        let url = '/products?sort=' + sort + '&direction=' + direction;
+                        
+                        // Thêm category nếu có
+                        const category = /*[[${selectedCategory != null ? selectedCategory.catalogId : null}]]*/ null;
+                        if (category) {
+                            url += '&category=' + category;
+                        }
+                        
+                        // Thêm query nếu có
+                        const searchTerm = /*[[${searchTerm}]]*/ '';
+                        if (searchTerm && searchTerm.trim() !== '') {
+                            url += '&query=' + encodeURIComponent(searchTerm);
+                        }
+                        
+                        // Thêm priceRange nếu có
+                        const priceRanges = /*[[${selectedPriceRanges}]]*/ [];
+                        if (priceRanges && priceRanges.length > 0) {
+                            for (let i = 0; i < priceRanges.length; i++) {
+                                url += '&priceRange=' + priceRanges[i];
+                            }
+                        }
+                        
+                        window.location.href = url;
+                    }
+                });
+            });
+            
+            // Hàm chuyển đến danh mục
+            function navigateToCategory(categoryId) {
+                // Tạo URL cơ bản
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + /*[[${sortField}]]*/ 'productName';
+                url += '&direction=' + /*[[${sortDirection}]]*/ 'asc';
+                
+                // Thêm category
+                url += '&category=' + categoryId;
+                
+                console.log('Navigating to category: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+            }
+            
+            // Hàm chuyển đến tất cả sản phẩm
+            function navigateToAllProducts() {
+                // Tạo URL cơ bản không có category
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + /*[[${sortField}]]*/ 'productName';
+                url += '&direction=' + /*[[${sortDirection}]]*/ 'asc';
+                
+                console.log('Navigating to all products: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+            }
+            
+            // Hàm xử lý lọc giá
+            function submitPriceFilter(event) {
+                event.preventDefault();
+                
+                // Tạo URL cơ bản
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + /*[[${sortField}]]*/ 'productName';
+                url += '&direction=' + /*[[${sortDirection}]]*/ 'asc';
+                
+                // Thêm category nếu có
+                const categoryId = /*[[${selectedCategory != null ? selectedCategory.catalogId : null}]]*/ null;
+                if (categoryId) {
+                    url += '&category=' + categoryId;
+                }
+                
+                // Thêm query nếu có
+                const searchTerm = /*[[${searchTerm}]]*/ '';
+                if (searchTerm && searchTerm.trim() !== '') {
+                    url += '&query=' + encodeURIComponent(searchTerm);
+                }
+                
+                // Thêm priceRange được chọn
+                const checkboxes = document.querySelectorAll('.price-filter:checked');
+                checkboxes.forEach(function(checkbox) {
+                    url += '&priceRange=' + checkbox.value;
+                });
+                
+                console.log('Filtering by price: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+                return false;
+            }
+            
+            // Hàm xóa bộ lọc giá
+            function clearFilters() {
+                // Tạo URL cơ bản không có priceRange
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + /*[[${sortField}]]*/ 'productName';
+                url += '&direction=' + /*[[${sortDirection}]]*/ 'asc';
+                
+                // Thêm category nếu có
+                const categoryId = /*[[${selectedCategory != null ? selectedCategory.catalogId : null}]]*/ null;
+                if (categoryId) {
+                    url += '&category=' + categoryId;
+                }
+                
+                // Thêm query nếu có
+                const searchTerm = /*[[${searchTerm}]]*/ '';
+                if (searchTerm && searchTerm.trim() !== '') {
+                    url += '&query=' + encodeURIComponent(searchTerm);
+                }
+                
+                console.log('Clearing price filters: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+            }
+            
+            // Hàm thay đổi sắp xếp
+            function changeSort(sortValue) {
+                if (!sortValue) return;
+                
+                const [sort, direction] = sortValue.split(',');
+                
+                // Tạo URL cơ bản
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + sort;
+                url += '&direction=' + direction;
+                
+                // Thêm category nếu có
+                const categoryId = /*[[${selectedCategory != null ? selectedCategory.catalogId : null}]]*/ null;
+                if (categoryId) {
+                    url += '&category=' + categoryId;
+                }
+                
+                // Thêm query nếu có
+                const searchTerm = /*[[${searchTerm}]]*/ '';
+                if (searchTerm && searchTerm.trim() !== '') {
+                    url += '&query=' + encodeURIComponent(searchTerm);
+                }
+                
+                // Thêm priceRange nếu có
+                const priceRanges = /*[[${selectedPriceRanges}]]*/ [];
+                if (priceRanges && priceRanges.length > 0) {
+                    for (let i = 0; i < priceRanges.length; i++) {
+                        url += '&priceRange=' + priceRanges[i];
+                    }
+                }
+                
+                console.log('Changing sort: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+            }
+            
+            // Hàm xử lý tìm kiếm
+            function submitSearch(event) {
+                event.preventDefault();
+                
+                const searchValue = document.getElementById('searchInput').value.trim();
+                
+                // Tạo URL cơ bản
+                let url = '/products?page=0';
+                
+                // Thêm các tham số cơ bản
+                url += '&size=' + /*[[${pageSize}]]*/ '8';
+                url += '&sort=' + /*[[${sortField}]]*/ 'productName';
+                url += '&direction=' + /*[[${sortDirection}]]*/ 'asc';
+                
+                // Thêm query từ form tìm kiếm
+                if (searchValue) {
+                    url += '&query=' + encodeURIComponent(searchValue);
+                }
+                
+                console.log('Searching: ' + url);
+                // Chuyển hướng đến URL
+                window.location.href = url;
+                return false;
+            }
+            
+            // Hàm chuyển trang sử dụng JavaScript thuần túy
+            function goToPage(page) {
+                // Tạo URL cơ bản
+                let url = '/products?page=' + page;
+                
+                // Thêm các tham số cơ bản
+                const pageSize = /*[[${pageSize}]]*/ '8';
+                url += '&size=' + pageSize;
+                
+                const sortField = /*[[${sortField}]]*/ 'productName';
+                url += '&sort=' + sortField;
+                
+                const sortDirection = /*[[${sortDirection}]]*/ 'asc';
+                url += '&direction=' + sortDirection;
+                
+                // Thêm category nếu có
+                const categoryId = /*[[${selectedCategory != null ? selectedCategory.catalogId : null}]]*/ null;
+                if (categoryId) {
+                    url += '&category=' + categoryId;
+                }
+                
+                // Thêm query nếu có
+                const searchTerm = /*[[${searchTerm}]]*/ '';
+                if (searchTerm && searchTerm.trim() !== '') {
+                    url += '&query=' + encodeURIComponent(searchTerm);
+                }
+                
+                // Thêm priceRange nếu có
+                const priceRanges = /*[[${selectedPriceRanges}]]*/ [];
+                if (priceRanges && priceRanges.length > 0) {
+                    for (let i = 0; i < priceRanges.length; i++) {
+                        url += '&priceRange=' + priceRanges[i];
+                    }
+                }
+                
+                console.log('Debug - Đang chuyển hướng đến trang: ' + url);
+                
+                // Chuyển hướng đến URL
+                window.location.href = url;
+            }
+        </script>
     </main>
 </body>
 </html>

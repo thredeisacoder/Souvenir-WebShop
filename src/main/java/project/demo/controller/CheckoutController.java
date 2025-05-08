@@ -39,6 +39,7 @@ import project.demo.service.IOrderTimelineEventsService;
 import project.demo.service.IPaymentMethodService;
 import project.demo.service.IPaymentService;
 import project.demo.service.IRevenueReportService;
+import project.demo.util.ValidationErrorMessages;
 
 @Controller
 @RequestMapping("/checkout")
@@ -66,6 +67,9 @@ public class CheckoutController {
     private IOrderTimelineEventsService orderTimelineEventsService;
 
     private final IRevenueReportService revenueReportService;
+
+    @Autowired
+    private ValidationErrorMessages validationErrorMessages;
 
     // Hardcoded shipping fees - would typically come from a database or config
     private static final Map<String, Integer> SHIPPING_FEES = new HashMap<>();
@@ -173,10 +177,13 @@ public class CheckoutController {
     }
 
     @PostMapping("/add-address")
-    public String addAddress(@RequestParam("addressLine") String addressLine,
-                            @RequestParam("city") String city,
-                            @RequestParam("country") String country,
-                            @RequestParam("zipCode") String zipCode,
+    public String addAddress(@RequestParam(value = "addressLine", required = false) String addressLine,
+                            @RequestParam(value = "city", required = false) String city,
+                            @RequestParam(value = "country", required = false) String country,
+                            @RequestParam(value = "zipCode", required = false) String zipCode,
+                            @RequestParam(value = "wardCommune", required = false) String wardCommune,
+                            @RequestParam(value = "district", required = false) String district,
+                            @RequestParam(value = "streetAddress", required = false) String streetAddress,
                             @RequestParam(value = "isDefault", required = false) Boolean isDefault,
                             HttpSession session,
                             RedirectAttributes redirectAttributes) {
@@ -186,6 +193,48 @@ public class CheckoutController {
         }
 
         try {
+            // Validate required fields
+            Map<String, String> errors = new HashMap<>();
+            
+            // Kiểm tra nếu addressLine được cung cấp trực tiếp
+            if ((addressLine == null || addressLine.trim().isEmpty()) && 
+                (streetAddress == null || streetAddress.trim().isEmpty())) {
+                errors.put("address_error", validationErrorMessages.getMessage("INVALID_ADDRESSLINE"));
+            }
+            
+            if (wardCommune == null || wardCommune.trim().isEmpty()) {
+                errors.put("wardCommune_error", validationErrorMessages.getMessage("INVALID_WARD_COMMUNE"));
+            }
+            
+            if (district == null || district.trim().isEmpty()) {
+                errors.put("district_error", validationErrorMessages.getMessage("INVALID_DISTRICT"));
+            }
+            
+            if (city == null || city.trim().isEmpty()) {
+                errors.put("city_error", validationErrorMessages.getMessage("INVALID_PROVINCE_CITY"));
+            }
+            
+            if (country == null || country.trim().isEmpty()) {
+                errors.put("country_error", validationErrorMessages.getMessage("INVALID_COUNTRY"));
+            }
+            
+            // Kiểm tra cả mã bưu điện
+            if (zipCode == null || zipCode.trim().isEmpty()) {
+                errors.put("zipCode_error", validationErrorMessages.getMessage("INVALID_ZIPCODE"));
+            }
+            
+            if (!errors.isEmpty()) {
+                for (Map.Entry<String, String> error : errors.entrySet()) {
+                    redirectAttributes.addFlashAttribute(error.getKey(), error.getValue());
+                }
+                return "redirect:/checkout/address";
+            }
+            
+            // Xử lý để tạo addressLine từ các thành phần nếu không được cung cấp trực tiếp
+            if (addressLine == null || addressLine.trim().isEmpty()) {
+                addressLine = streetAddress + ", " + wardCommune + ", " + district;
+            }
+            
             // Create new address
             Address address = new Address();
             address.setCustomerId(customer.getCustomerId());
@@ -204,7 +253,7 @@ public class CheckoutController {
             redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được thêm thành công");
             return "redirect:/checkout/shipping";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể thêm địa chỉ: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/checkout/address";
         }
     }
@@ -1273,32 +1322,35 @@ public class CheckoutController {
         // Check address fields only if using new address
         if (isUsingNewAddress) {
             if (address == null || address.trim().isEmpty()) {
-                errors.put("address", "Vui lòng nhập địa chỉ đường/phố");
+                errors.put("address", validationErrorMessages.getMessage("INVALID_ADDRESSLINE"));
             }
             if (wardCommune == null || wardCommune.trim().isEmpty()) {
-                errors.put("wardCommune", "Vui lòng nhập phường/xã");
+                errors.put("wardCommune", validationErrorMessages.getMessage("INVALID_WARD_COMMUNE"));
             }
             if (district == null || district.trim().isEmpty()) {
-                errors.put("district", "Vui lòng nhập quận/huyện");
+                errors.put("district", validationErrorMessages.getMessage("INVALID_DISTRICT"));
             }
             if (provinceCity == null || provinceCity.trim().isEmpty()) {
-                errors.put("provinceCity", "Vui lòng nhập tỉnh/thành phố");
+                errors.put("provinceCity", validationErrorMessages.getMessage("INVALID_PROVINCE_CITY"));
             }
             if (country == null || country.trim().isEmpty()) {
-                errors.put("country", "Vui lòng chọn quốc gia");
+                errors.put("country", validationErrorMessages.getMessage("INVALID_COUNTRY"));
+            }
+            if (zipcode == null || zipcode.trim().isEmpty()) {
+                errors.put("zipcode", validationErrorMessages.getMessage("INVALID_ZIPCODE"));
             }
         }
         
         // Validate card data only if using credit card
         if ("creditcard".equals(paymentMethod)) {
             if (cardNumber == null || cardNumber.trim().isEmpty() || cardNumber.length() < 13 || cardNumber.length() > 19) {
-                errors.put("cardNumber", "Số thẻ không hợp lệ");
+                errors.put("cardNumber", validationErrorMessages.getMessage("INVALID_CARD_NUMBER"));
             }
             if (expirationDate == null || expirationDate.trim().isEmpty() || !expirationDate.matches("^(0[1-9]|1[0-2])/[0-9]{2}$")) {
-                errors.put("expirationDate", "Ngày hết hạn không hợp lệ (định dạng MM/YY)");
+                errors.put("expirationDate", validationErrorMessages.getMessage("INVALID_EXPIRATION_DATE"));
             }
             if (securityCode == null || securityCode.trim().isEmpty() || !securityCode.matches("^[0-9]{3,4}$")) {
-                errors.put("securityCode", "Mã bảo mật không hợp lệ (3-4 chữ số)");
+                errors.put("securityCode", validationErrorMessages.getMessage("INVALID_SECURITY_CODE"));
             }
         }
         
