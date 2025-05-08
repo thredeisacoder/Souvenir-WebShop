@@ -337,7 +337,7 @@
                             <div class="product-item" th:each="item : ${orderDetails}">
                                 <div class="product-image">
                                     <img th:if="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
-                                         th:src="${item.product.productDetails[0].imageUrl}" alt="Product Image">
+                                         th:src="${'/' + item.product.productDetails[0].imageUrl}" alt="Product Image">
                                     <img th:unless="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
                                          src="/assets/img/product-placeholder.jpg" alt="Product Image">
                                 </div>

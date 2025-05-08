@@ -64,7 +64,7 @@
                                                 <div class="product-img">
                                                     <!-- Sử dụng hình ảnh mặc định nếu không có hình ảnh sản phẩm -->
                                                     <img th:if="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
-                                                         th:src="${item.product.productDetails[0].imageUrl}" 
+                                                         th:src="${'/' + item.product.productDetails[0].imageUrl}" 
                                                          alt="Product Image">
                                                     <img th:unless="${!#lists.isEmpty(item.product.productDetails) && item.product.productDetails[0].imageUrl != null}" 
                                                          th:src="@{/assets/images/product-placeholder.jpg}" 
