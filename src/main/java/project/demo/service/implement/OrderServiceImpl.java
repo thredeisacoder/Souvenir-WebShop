@@ -149,8 +149,10 @@ public class OrderServiceImpl implements IOrderService {
         // Create initial timeline event
         OrderTimelineEvent timelineEvent = new OrderTimelineEvent();
         timelineEvent.setOrderId(savedOrder.getOrderId());
-        timelineEvent.setStatus(OrderStatus.PENDING);
+        timelineEvent.setStatus(OrderStatus.ORDER_PLACED);
         timelineEvent.setTimestamp(LocalDateTime.now());
+        timelineEvent.setIcon("fa-shopping-cart");
+        timelineEvent.setIconBackgroundColor("bg-info");
         timelineEvent.setDescription("Đơn hàng của bạn đã được đặt thành công.");
         orderTimelineEventRepository.save(timelineEvent);
         

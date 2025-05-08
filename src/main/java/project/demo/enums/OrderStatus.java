@@ -7,6 +7,7 @@ package project.demo.enums;
 public enum OrderStatus {
     NEW("new"),
     PENDING("pending"),
+    ORDER_PLACED("Order Placed"),
     PROCESSING_PAYMENT_VERIFICATION("processing_payment_verification"),
     PROCESSING_PAYMENT_CONFIRMED("processing_payment_confirmed"),
     PROCESSING_PACKING("processing_packing"),

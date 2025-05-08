@@ -784,7 +784,12 @@ public class CheckoutController {
                     throw new Exception("Order creation returned null");
                 }
                 
+                // Order created successfully
                 System.out.println("Order created successfully with ID: " + order.getOrderId());
+                session.setAttribute("orderId", order.getOrderId());
+
+                // Timeline events are already created in the OrderServiceImpl.createFromCart method
+                // No need to create a duplicate "Order Placed" event here
                 
                 // Update OrderDetail entries to include the note if provided
                 if (orderNote != null && !orderNote.trim().isEmpty()) {
@@ -833,26 +838,6 @@ public class CheckoutController {
                     e.printStackTrace();
                     // Không throw exception, tiếp tục xử lý để tạo đơn hàng
                 }
-            }
-            
-            // Create initial order timeline event
-            try {
-                System.out.println("Creating timeline event for order: " + order.getOrderId());
-                OrderTimelineEvent timelineEvent = new OrderTimelineEvent();
-                timelineEvent.setOrderId(order.getOrderId());
-                timelineEvent.setStatus("Order Placed");
-                timelineEvent.setTimestamp(LocalDateTime.now());
-                timelineEvent.setIcon("fa-shopping-cart");
-                timelineEvent.setIconBackgroundColor("bg-info");
-                timelineEvent.setDescription("Đơn hàng của bạn đã được đặt thành công.");
-                // Không sử dụng trường note trong timeline event
-                
-                OrderTimelineEvent savedEvent = orderTimelineEventsService.save(timelineEvent);
-                System.out.println("Timeline event created with ID: " + savedEvent.getId());
-            } catch (Exception e) {
-                System.err.println("Error creating timeline event: " + e.getMessage());
-                e.printStackTrace();
-                // Không throw exception, tiếp tục xử lý để hoàn tất đơn hàng
             }
             
             // Clear cart after successful order creation
