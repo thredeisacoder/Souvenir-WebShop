@@ -5,11 +5,13 @@
     <style>
         .promotion-card {
             background-color: white;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
             transition: all 0.3s ease;
+            border: 1px solid #eaeaea;
+            position: relative;
         }
         
         .promotion-card:hover {
@@ -17,10 +19,18 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
         
-        .promotion-header {
+        .promotion-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
             background-color: #0e7c7b;
-            color: white;
-            padding: 15px 20px;
+        }
+        
+        .promotion-header {
+            padding: 20px 20px 5px 20px;
             position: relative;
         }
         
@@ -28,33 +38,35 @@
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 5px;
+            color: #333;
         }
         
         .promotion-dates {
             font-size: 14px;
-            opacity: 0.9;
+            color: #777;
+            margin-bottom: 10px;
         }
         
         .promotion-badge {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background-color: white;
+            display: inline-block;
+            background-color: #e8f5f5;
             color: #0e7c7b;
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 20px;
             font-size: 12px;
+            margin-bottom: 10px;
         }
         
         .promotion-content {
-            padding: 20px;
+            padding: 0 20px 20px 20px;
         }
         
         .promotion-description {
             color: #555;
             margin-bottom: 20px;
             line-height: 1.6;
+            font-size: 15px;
         }
         
         .promotion-discount {
@@ -78,6 +90,10 @@
             border-top: 1px solid #f0f0f0;
         }
         
+        .promotion-code-container {
+            margin-bottom: 15px;
+        }
+        
         .promotion-code {
             background-color: #f8f9fa;
             border: 1px dashed #ddd;
@@ -87,33 +103,13 @@
             font-weight: 600;
             margin-right: 10px;
             border-radius: 5px;
-        }
-        
-        .copy-code-btn {
-            display: inline-flex;
-            align-items: center;
-            background-color: #0e7c7b;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        .copy-code-btn:hover {
-            background-color: #085b5a;
-        }
-        
-        .copy-code-btn i {
-            margin-right: 5px;
+            color: #333;
         }
         
         .promotion-banner {
             background-color: #f0f7f7;
-            padding: 50px 0;
-            margin-bottom: 50px;
+            padding: 40px 0;
+            margin-bottom: 40px;
             text-align: center;
         }
         
@@ -145,15 +141,39 @@
             margin-bottom: 20px;
         }
         
+        .btn-details {
+            color: #0e7c7b;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .btn-details i {
+            margin-right: 5px;
+        }
+        
+        .btn-details:hover {
+            color: #085b5a;
+            text-decoration: underline;
+        }
+        
+        .limit-badge {
+            display: inline-flex;
+            align-items: center;
+            color: #777;
+        }
+        
+        .limit-badge i {
+            margin-right: 5px;
+        }
+        
         @media (max-width: 767px) {
-            .promotion-header {
-                text-align: center;
-            }
-            
-            .promotion-badge {
-                position: static;
-                display: inline-block;
-                margin-top: 10px;
+            .promotion-card::before {
+                width: 100%;
+                height: 4px;
+                top: 0;
+                bottom: auto;
             }
         }
     </style>
@@ -190,10 +210,10 @@
                 <div class="col-md-6 col-lg-4" th:each="promotion : ${promotions}">
                     <div class="promotion-card">
                         <div class="promotion-header">
-                            <h3 class="promotion-title" th:text="${promotion.title}"></h3>
+                            <h3 class="promotion-title" th:text="${promotion.promotionName}">Giảm giá mùa hè</h3>
                             <div class="promotion-dates">
-                                <span th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}"></span> - 
-                                <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}"></span>
+                                <span th:text="${#temporals.format(promotion.startDate, 'dd/MM/yyyy')}">15/05/2025</span> - 
+                                <span th:text="${#temporals.format(promotion.endDate, 'dd/MM/yyyy')}">30/06/2025</span>
                             </div>
                             <div class="promotion-badge" th:if="${promotion.status == 'ACTIVE' && promotion.startDate <= today && promotion.endDate >= today}">
                                 Đang diễn ra
@@ -207,34 +227,30 @@
                         </div>
                         
                         <div class="promotion-content">
-                            <p class="promotion-description" th:text="${promotion.description}"></p>
+                            <p class="promotion-description" th:text="${promotion.description}">Giảm 10% cho tất cả sản phẩm</p>
                             
                             <div class="promotion-discount">
                                 <span th:if="${promotion.discountType == 'PERCENTAGE'}">
-                                    Giảm <span th:text="${promotion.discountValue}"></span>%
+                                    Giảm <span th:text="${promotion.discountValue}">10</span>%
                                 </span>
                                 <span th:if="${promotion.discountType == 'FIXED_AMOUNT'}">
-                                    Giảm <span th:text="${#numbers.formatDecimal(promotion.discountValue, 0, 'COMMA', 0, 'POINT')}"></span>đ
-                                </span>
-                                <span th:if="${promotion.minimumOrderAmount > 0}">
-                                    khi mua từ <span th:text="${#numbers.formatDecimal(promotion.minimumOrderAmount, 0, 'COMMA', 0, 'POINT')}"></span>đ
+                                    Giảm <span th:text="${#numbers.formatDecimal(promotion.discountValue, 0, 'COMMA', 0, 'POINT')}">100.000</span>đ
                                 </span>
                             </div>
                             
-                            <div th:if="${promotion.promoCode != null && !promotion.promoCode.isEmpty()}" class="d-flex align-items-center">
-                                <div class="promotion-code" th:text="${promotion.promoCode}"></div>
-                                <button class="copy-code-btn" th:attr="data-code=${promotion.promoCode}" onclick="copyPromoCode(this)">
-                                    <i class="far fa-copy"></i> Sao chép
-                                </button>
+                            <!-- Thêm phần mã khuyến mãi giả định -->
+                            <div class="promotion-code-container">
+                                <div class="promotion-code">SUMMER2025</div>
                             </div>
                             
                             <div class="promotion-meta">
                                 <div>
-                                    <i class="fas fa-info-circle"></i> 
-                                    <a th:href="@{/promotions/{id}(id=${promotion.promotionId})}" class="text-decoration-none">Xem chi tiết</a>
+                                    <a th:href="@{/promotions/{id}(id=${promotion.promotionId})}" class="btn-details">
+                                        <i class="fas fa-info-circle"></i> Xem chi tiết
+                                    </a>
                                 </div>
-                                <div th:if="${promotion.usageLimitPerCustomer > 0}">
-                                    <i class="fas fa-user"></i> Giới hạn: <span th:text="${promotion.usageLimitPerCustomer}"></span> lần/khách hàng
+                                <div th:if="${promotion.usageLimit > 0}" class="limit-badge">
+                                    <i class="fas fa-user"></i> Giới hạn: <span th:text="${promotion.usageLimit}">100</span> lần
                                 </div>
                             </div>
                         </div>
@@ -242,19 +258,6 @@
                 </div>
             </div>
         </div>
-        
-        <script>
-            function copyPromoCode(button) {
-                const code = button.getAttribute('data-code');
-                navigator.clipboard.writeText(code).then(() => {
-                    const originalText = button.innerHTML;
-                    button.innerHTML = '<i class="fas fa-check"></i> Đã sao chép';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                    }, 2000);
-                });
-            }
-        </script>
     </main>
 </body>
 </html>
