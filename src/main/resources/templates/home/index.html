@@ -31,11 +31,32 @@
             <div class="container">
                 <div class="featured-product-card">
                     <div class="featured-product-image">
-                        <img th:src="@{/assets/images/featured-product.jpg}" alt="Sản phẩm nổi bật" onerror="this.src='https://placehold.co/400x300/f5f5f5/555?text=Sản+phẩm+nổi+bật'">
+                        <!-- Hiển thị hình ảnh sản phẩm nổi bật nếu có -->
+                        <img th:if="${featuredProductImage != null}" th:src="${featuredProductImage}" alt="Sản phẩm nổi bật"
+                             class="img-fluid" style="max-height: 300px; object-fit: contain;">
+                        <!-- Hiển thị hình ảnh mặc định nếu không có sản phẩm -->
+                        <img th:if="${featuredProductImage == null}" th:src="@{/assets/images/featured-product.jpg}" 
+                             alt="Sản phẩm nổi bật" onerror="this.src='https://placehold.co/400x300/f5f5f5/555?text=Sản+phẩm+nổi+bật'"
+                             class="img-fluid" style="max-height: 300px; object-fit: contain;">
                     </div>
                     <div class="featured-product-content">
-                        <h2 class="featured-product-title">Bộ sưu tập quà lưu niệm thủ công</h2>
-                        <p>Những món quà lưu niệm thủ công phổ biến nhất của chúng tôi được làm bởi các nghệ nhân địa phương với kỹ thuật truyền thống và vật liệu cao cấp.</p>
+                        <!-- Hiển thị tên sản phẩm nếu có -->
+                        <h2 class="featured-product-title" th:if="${featuredProduct != null}" th:text="${featuredProduct.productName}">
+                            Bộ sưu tập quà lưu niệm thủ công
+                        </h2>
+                        <!-- Hiển thị tiêu đề mặc định nếu không có sản phẩm -->
+                        <h2 class="featured-product-title" th:if="${featuredProduct == null}">
+                            Bộ sưu tập quà lưu niệm thủ công
+                        </h2>
+                        
+                        <!-- Hiển thị mô tả sản phẩm nếu có -->
+                        <p th:if="${featuredProduct != null}" th:text="${featuredProduct.description}">
+                            Những món quà lưu niệm thủ công phổ biến nhất của chúng tôi được làm bởi các nghệ nhân địa phương với kỹ thuật truyền thống và vật liệu cao cấp.
+                        </p>
+                        <!-- Hiển thị mô tả mặc định nếu không có sản phẩm -->
+                        <p th:if="${featuredProduct == null}">
+                            Những món quà lưu niệm thủ công phổ biến nhất của chúng tôi được làm bởi các nghệ nhân địa phương với kỹ thuật truyền thống và vật liệu cao cấp.
+                        </p>
                         
                         <div class="featured-product-features">
                             <ul class="feature-list">
@@ -46,8 +67,17 @@
                             </ul>
                         </div>
                         
-                        <div class="featured-product-price">Từ 499.000đ</div>
+                        <!-- Hiển thị giá sản phẩm nếu có -->
+                        <div class="featured-product-price" th:if="${featuredProductPrice != null}" 
+                             th:text="${#numbers.formatDecimal(featuredProductPrice, 0, 'COMMA', 0, 'POINT') + 'đ'}">
+                            Từ 499.000đ
+                        </div>
+                        <!-- Hiển thị giá mặc định nếu không có sản phẩm -->
+                        <div class="featured-product-price" th:if="${featuredProductPrice == null}">
+                            Từ 499.000đ
+                        </div>
                         
+                        <!-- Nút "Mua ngay" luôn trỏ đến /products/featured -->
                         <a href="/products/featured" class="btn btn-primary">Mua ngay</a>
                     </div>
                 </div>
@@ -61,10 +91,10 @@
                 
                 <div class="row">
                     <div th:each="catalog : ${catalogs}" class="col-6 col-md-3 col-lg-2">
-                        <a th:href="@{/products(catalogId=${catalog.catalogId})}" class="text-decoration-none">
+                        <a th:href="@{/products(category=${catalog.catalogId})}" class="text-decoration-none">
                             <div class="category-card d-flex flex-column align-items-center justify-content-center">
                                 <div class="category-icon">
-                                    <i th:class="${catalog.catalogIcon != null ? catalog.catalogIcon : 'fas fa-gift'}"></i>
+                                    <i class="fas fa-gift"></i>
                                 </div>
                                 <div class="category-name" th:text="${catalog.catalogName}">Danh mục</div>
                             </div>

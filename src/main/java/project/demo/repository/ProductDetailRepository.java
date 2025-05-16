@@ -1,12 +1,13 @@
 package project.demo.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-import project.demo.model.ProductDetail;
 
-import java.util.List;
-import java.util.Optional;
+import project.demo.model.ProductDetail;
 
 /**
  * Repository interface for ProductDetail entities
@@ -60,4 +61,12 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
      */
     @Query("SELECT pd FROM ProductDetail pd WHERE pd.imageUrl IS NOT NULL")
     List<ProductDetail> findProductsWithImages();
+    
+    /**
+     * Find the product with the highest stock quantity
+     * 
+     * @return the product detail with the highest stock quantity
+     */
+    @Query("SELECT pd FROM ProductDetail pd WHERE pd.quantityInStock = (SELECT MAX(p.quantityInStock) FROM ProductDetail p)")
+    ProductDetail findProductWithHighestStock();
 }

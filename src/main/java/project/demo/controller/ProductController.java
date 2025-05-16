@@ -41,6 +41,24 @@ public class ProductController {
     }
 
     /**
+     * Featured product endpoint - redirects to the product with highest stock
+     */
+    @GetMapping("/featured")
+    public String featuredProduct(Model model) {
+        try {
+            // Lấy sản phẩm có số lượng tồn kho lớn nhất
+            Product product = productService.findProductWithHighestStock();
+            
+            // Chuyển hướng đến trang chi tiết sản phẩm
+            return "redirect:/products/" + product.getProductId();
+        } catch (Exception e) {
+            // Nếu không tìm thấy sản phẩm nào, điều hướng đến trang danh sách sản phẩm
+            model.addAttribute("errorMessage", "Không tìm thấy sản phẩm nổi bật");
+            return "redirect:/products";
+        }
+    }
+
+    /**
      * Display a list of products, optionally filtered by category with pagination
      * using Spring Data's Pageable
      */

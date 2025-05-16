@@ -322,10 +322,21 @@ public class ProductServiceImpl implements IProductService {
             throw new IllegalArgumentException("Search keyword cannot be empty");
         }
 
-        // For debugging
-        System.out.println("Searching for products with keyword: " + keyword);
+        return productRepository.findByProductNameContainingIgnoreCase(keyword, pageable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Product findProductWithHighestStock() {
+        ProductDetail productDetail = productDetailRepository.findProductWithHighestStock();
+        if (productDetail == null) {
+            throw new ResourceNotFoundException("PRODUCT_NOT_FOUND", "No products found in stock");
+        }
         
-        // Sử dụng trực tiếp repository để tìm kiếm với phân trang
-        return productRepository.searchByNameOrDescriptionPaginated(keyword, pageable);
+        return productRepository.findById(productDetail.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", 
+                        "Product not found with ID: " + productDetail.getProductId()));
     }
 }
