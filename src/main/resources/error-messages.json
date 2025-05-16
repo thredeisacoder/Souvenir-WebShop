@@ -2,31 +2,31 @@
   "errors": [
     {
       "messageCode": "INVALID_ADDRESSLINE",
-      "description": "Trường hợp chưa nhập số nhà, tên đường"
+      "description": "Vui lòng nhập số nhà, tên đường"
     },
     {
       "messageCode": "INVALID_WARD_COMMUNE",
-      "description": "Trường hợp chưa nhập phường/xã"
+      "description": "Vui lòng nhập phường/xã"
     },
     {
       "messageCode": "INVALID_DISTRICT",
-      "description": "Trường hợp chưa nhập quận/huyện"
+      "description": "Vui lòng nhập quận/huyện"
     },
     {
       "messageCode": "INVALID_ZIPCODE",
-      "description": "Trường hợp nhập mã bưu điện"
+      "description": "Vui lòng nhập mã bưu điện"
     },
     {
       "messageCode": "INVALID_PROVINCE_CITY",
-      "description": "Trường hợp chưa chọn tỉnh/thành phố"
+      "description": "Vui lòng chọn tỉnh/thành phố"
     },
     {
       "messageCode": "INVALID_COUNTRY",
-      "description": "Trường hợp chọn quốc gia"
+      "description": "Vui lòng chọn quốc gia"
     },
     {
       "messageCode": "INVALID_NAME",
-      "description": "Trường hợp chưa nhập họ và tên"
+      "description": "Vui lòng nhập họ và tên"
     },
     {
       "messageCode": "INVALID_NAME_WITH_DIGITS",
@@ -34,23 +34,23 @@
     },
     {
       "messageCode": "INVALID_EMAIL",
-      "description": "Trường hợp chưa nhập Email"
+      "description": "Vui lòng nhập Email"
     },
     {
       "messageCode": "INVALID_EMAIL_FORMAT",
-      "description": "Trường hợp nhập Email không đúng định dạng"
+      "description": "Vui lòng nhập Email đúng định dạng"
     },
     {
       "messageCode": "INVALID_PHONE",
-      "description": "Trường hợp chưa nhập số điện thoại"
+      "description": "Vui lòng nhập số điện thoại"
     },
     {
       "messageCode": "NUMBER_PHONE_ERROR",
-      "description": "Trường hợp số điện thoại không phải là 10 hoặc 11 số"
+      "description": "Vui lòng nhập số điện thoại là 10 hoặc 11 số"
     },
     {
       "messageCode": "INVALID_ADDRESS",
-      "description": "Trường hợp chưa nhập địa chỉ"
+      "description": "Vui lòng nhập địa chỉ"
     },
     {
       "messageCode": "ACCOUNT_NOT_FOUND",
@@ -133,4 +133,4 @@
       "description": "Có lỗi xảy ra"
     }
   ]
-} 
+}

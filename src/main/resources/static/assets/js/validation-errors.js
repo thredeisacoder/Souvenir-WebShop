@@ -41,6 +41,9 @@ class ValidationErrorMessages {
      * @returns {string} The error message, or the error code if not found
      */
     getMessage(errorCode) {
+        if (!errorCode) {
+            return 'Vui lòng kiểm tra lại thông tin';
+        }
         return this.errorMessages[errorCode] || errorCode;
     }
     
@@ -127,7 +130,7 @@ class ValidationErrorMessages {
         
         // Basic password validation - at least 8 characters
         if (password.length < 8) {
-            return "Mật khẩu phải có ít nhất 8 ký tự";
+            return this.getMessage('INVALID_PASSWORD_LENGTH');
         }
         
         return null;
@@ -181,9 +184,6 @@ class ValidationErrorMessages {
             return this.getMessage('INVALID_CARD_NUMBER');
         }
         
-        // Optional: Implement Luhn algorithm for additional validation
-        // For simplicity, we'll skip it here
-        
         return null;
     }
     
@@ -232,10 +232,135 @@ class ValidationErrorMessages {
         
         return null;
     }
+
+    /**
+     * Validates an address form
+     * @param {HTMLElement} form - The form element
+     * @param {boolean} isEditForm - Whether this is an edit form
+     * @returns {Object} Object containing validation errors
+     */
+    validateAddressForm(form, isEditForm = false) {
+        const prefix = isEditForm ? 'edit' : '';
+        const errors = {};
+        
+        // Validate street address
+        const streetAddress = document.getElementById(prefix + (prefix ? 'S' : 's') + 'treetAddress')?.value.trim();
+        if (!streetAddress) {
+            errors.streetAddress = this.getMessage('INVALID_ADDRESSLINE');
+        }
+        
+        // Validate ward/commune
+        const wardCommune = document.getElementById(prefix + 'wardCommune')?.value.trim();
+        if (!wardCommune) {
+            errors.wardCommune = this.getMessage('INVALID_WARD_COMMUNE');
+        }
+        
+        // Validate district
+        const district = document.getElementById(prefix + 'district')?.value.trim();
+        if (!district) {
+            errors.district = this.getMessage('INVALID_DISTRICT');
+        }
+        
+        // Validate province/city
+        const provinceCity = document.getElementById(prefix + 'provinceCity')?.value;
+        if (!provinceCity) {
+            errors.provinceCity = this.getMessage('INVALID_PROVINCE_CITY');
+        }
+        
+        // Validate country
+        const country = document.getElementById(prefix + 'country')?.value;
+        if (!country) {
+            errors.country = this.getMessage('INVALID_COUNTRY');
+        }
+        
+        // Validate zip code
+        const zipCode = document.getElementById(prefix + 'zipCode')?.value.trim();
+        if (!zipCode) {
+            errors.zipCode = this.getMessage('INVALID_ZIPCODE');
+        }
+        
+        return errors;
+    }
+
+    /**
+     * Clears all error messages from a form
+     * @param {HTMLElement} form - The form element
+     */
+    clearFormErrors(form) {
+        // Remove is-invalid class from all fields
+        form.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        
+        // Clear all invalid-feedback elements
+        form.querySelectorAll('.invalid-feedback').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+    }
+
+    /**
+     * Displays validation errors in a form
+     * @param {HTMLElement} form - The form element
+     * @param {Object} errors - Object containing validation errors
+     * @param {boolean} isEditForm - Whether this is an edit form
+     */
+    displayFormErrors(form, errors, isEditForm = false) {
+        // Clear existing errors
+        this.clearFormErrors(form);
+        
+        // Add prefix for edit form fields
+        const prefix = isEditForm ? 'edit' : '';
+        
+        // Display new errors
+        for (const [fieldName, errorMessage] of Object.entries(errors)) {
+            // Determine field ID based on field name and form type
+            let fieldId;
+            if (fieldName === 'streetAddress') {
+                fieldId = prefix + (prefix ? 'S' : 's') + 'treetAddress';
+            } else {
+                fieldId = prefix + fieldName;
+            }
+            
+            const field = form.querySelector(`#${fieldId}`);
+            if (field) {
+                // Add error class to input field
+                field.classList.add('is-invalid');
+                
+                // Find and display invalid-feedback element
+                const errorElement = document.getElementById(`${fieldId}-error`) || 
+                                   field.nextElementSibling;
+                
+                if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                } else {
+                    // Create new element if not found
+                    const newErrorElement = document.createElement('div');
+                    newErrorElement.className = 'invalid-feedback';
+                    newErrorElement.textContent = errorMessage;
+                    newErrorElement.style.display = 'block';
+                    field.parentNode.insertBefore(newErrorElement, field.nextSibling);
+                }
+            } else {
+                console.warn(`Field ${fieldId} not found for error display`);
+            }
+        }
+        
+        // Scroll to first error field
+        const firstErrorField = form.querySelector('.is-invalid');
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstErrorField.focus();
+        }
+    }
 }
 
 // Create a global instance
 const validationErrors = new ValidationErrorMessages();
+
+// Export for use in other files
+window.validationErrors = validationErrors;
 
 // Example usage in a form validation function
 function validateCheckoutForm(form) {
@@ -330,43 +455,8 @@ function validateCheckoutForm(form) {
     
     // Display errors if any
     if (!isValid) {
-        displayFormErrors(form, errors);
+        validationErrors.displayFormErrors(form, errors);
     }
     
     return isValid;
-}
-
-/**
- * Displays form errors next to the corresponding fields
- * @param {HTMLElement} form - The form element
- * @param {Object} errors - An object mapping field names to error messages
- */
-function displayFormErrors(form, errors) {
-    // Clear existing error messages
-    form.querySelectorAll('.error-message').forEach(el => el.remove());
-    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-    
-    // Add new error messages
-    for (const [fieldName, errorMessage] of Object.entries(errors)) {
-        const field = form.querySelector(`[name="${fieldName}"]`);
-        if (field) {
-            // Add error class to the field
-            field.classList.add('is-invalid');
-            
-            // Create error element
-            const errorElement = document.createElement('div');
-            errorElement.className = 'error-message invalid-feedback';
-            errorElement.textContent = errorMessage;
-            
-            // Add error message after the field
-            field.parentNode.insertBefore(errorElement, field.nextSibling);
-        }
-    }
-    
-    // Scroll to the first error
-    const firstErrorField = form.querySelector('.is-invalid');
-    if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        firstErrorField.focus();
-    }
 } 
