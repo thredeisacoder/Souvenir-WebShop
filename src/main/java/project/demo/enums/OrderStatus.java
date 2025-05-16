@@ -5,7 +5,7 @@ package project.demo.enums;
  * Based on the CK_Order_Status check constraint in the database.
  */
 public enum OrderStatus {
-    NEW("new"),
+    NEW("orderNew"),
     PENDING("pending"),
     ORDER_PLACED("Order Placed"),
     PROCESSING_PAYMENT_VERIFICATION("processing_payment_verification"),

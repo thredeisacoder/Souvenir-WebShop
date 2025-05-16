@@ -110,13 +110,13 @@ public class OrderServiceImpl implements IOrderService {
         Order order = new Order();
         order.setCustomerId(cart.getCustomerId());
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.NEW);
         order.setShippingAddress(address);
         order.setPaymentMethodId(paymentMethod.getPaymentMethodId());
         order.setShippingMethod(shippingMethod);
         order.setShippingFee(calculateShippingFee(shippingMethod));
         order.setEstimatedDeliveryDate(calculateEstimatedDeliveryDate(shippingMethod));
-        order.setOrderStatus(OrderStatus.PENDING.getValue());
+        order.setOrderStatus(OrderStatus.NEW.getValue());
         order.setNote(note);
         
         BigDecimal subtotal = BigDecimal.ZERO;
