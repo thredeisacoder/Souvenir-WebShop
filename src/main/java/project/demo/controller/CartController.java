@@ -185,9 +185,14 @@ public class CartController {
      */
     @PostMapping("/add")
     public String addToCart(@RequestParam("productId") Integer productId,
-            @RequestParam("quantity") Integer quantity,
+            @RequestParam(value = "quantity", required = false) Integer quantity,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
+        // Set default quantity to 1 if not provided
+        if (quantity == null || quantity <= 0) {
+            quantity = 1;
+        }
+
         // Check if user is logged in
         if (session.getAttribute("isLoggedIn") == null || !(Boolean) session.getAttribute("isLoggedIn")) {
             // Store the product info in session for later use after login

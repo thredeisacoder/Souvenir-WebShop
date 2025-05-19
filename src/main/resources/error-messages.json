@@ -131,6 +131,14 @@
     {
       "messageCode": "GENERIC_ERROR",
       "description": "Có lỗi xảy ra"
+    },
+    {
+      "messageCode": "EMPTY_FIELD",
+      "description": "Vui lòng không để trống trường này"
+    },
+    {
+      "messageCode": "INVALID_INPUT",
+      "description": "Giá trị không hợp lệ"
     }
   ]
 }

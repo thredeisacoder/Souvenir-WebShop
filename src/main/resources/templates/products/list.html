@@ -324,11 +324,11 @@
                                         <a th:href="@{/products/{id}(id=${product.productId})}" th:text="${product.productName}"></a>
                                     </h3>
                                     <div class="d-flex align-items-center">
-                                        <span class="product-price" th:if="${productDiscountPrices.containsKey(product.productId)}" 
+                                        <span class="product-price" th:if="${productDiscountPrices.containsKey(product.productId) && productDiscountPrices.get(product.productId).compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                               th:text="${#numbers.formatDecimal(productDiscountPrices.get(product.productId), 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                                        <span class="product-price" th:unless="${productDiscountPrices.containsKey(product.productId)}" 
+                                        <span class="product-price" th:unless="${productDiscountPrices.containsKey(product.productId) && productDiscountPrices.get(product.productId).compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                               th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                                        <span class="product-original-price" th:if="${productDiscountPrices.containsKey(product.productId)}" 
+                                        <span class="product-original-price" th:if="${productDiscountPrices.containsKey(product.productId) && productDiscountPrices.get(product.productId).compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                               th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                                     </div>
                                     <div class="mt-2">

@@ -459,4 +459,34 @@ function validateCheckoutForm(form) {
     }
     
     return isValid;
+}
+
+// Validate quantity input
+function validateQuantity(input) {
+    if (!input.value || input.value.trim() === '') {
+        return {
+            isValid: false,
+            messageCode: 'EMPTY_FIELD'
+        };
+    }
+    
+    const value = parseInt(input.value);
+    if (isNaN(value) || value < 1) {
+        return {
+            isValid: false,
+            messageCode: 'INVALID_INPUT'
+        };
+    }
+    
+    const max = parseInt(input.getAttribute('max'));
+    if (value > max) {
+        return {
+            isValid: false,
+            messageCode: 'PRODUCT_OUT_OF_STOCK'
+        };
+    }
+    
+    return {
+        isValid: true
+    };
 } 

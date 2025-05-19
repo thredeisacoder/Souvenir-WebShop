@@ -260,6 +260,31 @@
                 padding: 20px 0;
             }
         }
+
+        /* Toast Notification */
+        .custom-toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            min-width: 250px;
+            background: #ff9800;
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 9999;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeInOut 2.5s;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px);}
+            10% { opacity: 1; transform: translateY(0);}
+            90% { opacity: 1; transform: translateY(0);}
+            100% { opacity: 0; transform: translateY(-20px);}
+        }
     </style>
 </head>
 <body>
@@ -296,11 +321,11 @@
                         
                         <!-- Price -->
                         <div class="product-price-container">
-                            <span class="product-price" th:if="${productDetail != null && productDetail.discountPrice != null}" 
+                            <span class="product-price" th:if="${productDetail != null && productDetail.discountPrice != null && productDetail.discountPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                   th:text="${#numbers.formatDecimal(productDetail.discountPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                            <span class="product-price" th:unless="${productDetail != null && productDetail.discountPrice != null}" 
+                            <span class="product-price" th:unless="${productDetail != null && productDetail.discountPrice != null && productDetail.discountPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                   th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                            <span class="product-original-price" th:if="${productDetail != null && productDetail.discountPrice != null}" 
+                            <span class="product-original-price" th:if="${productDetail != null && productDetail.discountPrice != null && productDetail.discountPrice.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
                                   th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                         </div>
                         
@@ -332,7 +357,7 @@
                         </div>
                         
                         <!-- Add to Cart Form -->
-                        <form th:action="@{/cart/add}" method="post" th:if="${productDetail != null && productDetail.quantityInStock > 0}">
+                        <form th:action="@{/cart/add}" method="post" th:if="${productDetail != null && productDetail.quantityInStock > 0}" id="addToCartForm" novalidate>
                             <input type="hidden" name="productId" th:value="${product.productId}">
                             
                             <div class="quantity-control">
@@ -340,6 +365,7 @@
                                 <input type="number" name="quantity" value="1" min="1" th:max="${productDetail.quantityInStock}" class="quantity-input" id="quantityInput">
                                 <div class="quantity-btn plus" onclick="incrementQuantity()">+</div>
                             </div>
+                            <div class="error-message text-danger" id="quantityError" style="display: none;"></div>
                             
                             <div class="d-flex">
                                 <button type="submit" class="add-to-cart-btn">
@@ -447,13 +473,33 @@
             </div>
         </div>
         
+        <!-- Toast Notification -->
+        <div id="customToast" class="custom-toast" style="display:none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="customToastMsg"></span>
+        </div>
+        
+        <script th:src="@{/assets/js/validation-errors.js}"></script>
         <script>
+            function showToast(message) {
+                const toast = document.getElementById('customToast');
+                const toastMsg = document.getElementById('customToastMsg');
+                toastMsg.textContent = message;
+                toast.style.display = 'flex';
+                
+                // Tự động đóng toast sau 2.5 giây
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 2500);
+            }
+            
             function incrementQuantity() {
                 const input = document.getElementById('quantityInput');
                 const max = parseInt(input.getAttribute('max'));
                 let value = parseInt(input.value) + 1;
                 if (value > max) value = max;
                 input.value = value;
+                handleQuantityValidation();
             }
             
             function decrementQuantity() {
@@ -461,7 +507,33 @@
                 let value = parseInt(input.value) - 1;
                 if (value < 1) value = 1;
                 input.value = value;
+                handleQuantityValidation();
             }
+
+            function handleQuantityValidation() {
+                const input = document.getElementById('quantityInput');
+                const errorDiv = document.getElementById('quantityError');
+                const result = validateQuantity(input);
+                
+                if (!result.isValid) {
+                    // Ẩn lỗi dưới input
+                    errorDiv.style.display = 'none';
+                    // Hiển thị toast thay vì text dưới form
+                    showToast(validationErrors.getMessage(result.messageCode));
+                    return false;
+                }
+                
+                errorDiv.style.display = 'none';
+                return true;
+            }
+
+            document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+                if (!handleQuantityValidation()) {
+                    e.preventDefault();
+                }
+            });
+
+            document.getElementById('quantityInput').addEventListener('input', handleQuantityValidation);
         </script>
     </main>
 </body>
