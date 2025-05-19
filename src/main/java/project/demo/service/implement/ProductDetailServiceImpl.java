@@ -272,14 +272,57 @@ public class ProductDetailServiceImpl implements IProductDetailService {
         
         // Check if product detail exists
         Optional<ProductDetail> productDetail = productDetailRepository.findByProductId(productId);
-        if (productDetail.isEmpty() || productDetail.get().getQuantityInStock() == null) {
+        if (productDetail.isEmpty()) {
             return 0;
         }
         
-        // Return the quantity in stock
-        return productDetail.get().getQuantityInStock();
+        // Return quantity in stock, or 0 if null
+        return productDetail.get().getQuantityInStock() != null ? 
+               productDetail.get().getQuantityInStock() : 0;
     }
     
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public ProductDetail decreaseStockQuantity(Integer productId, Integer quantity) {
+        // Check if product exists
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("PRODUCT_NOT_FOUND", 
+                    "Product not found with ID: " + productId);
+        }
+        
+        // Check if product detail exists
+        ProductDetail productDetail = findByProductId(productId);
+        
+        // Validate quantity
+        if (quantity < 0) {
+            throw new ProductDetailException(
+                "INVALID_QUANTITY",
+                "Decrement quantity cannot be negative: " + quantity
+            );
+        }
+        
+        Integer currentStock = productDetail.getQuantityInStock();
+        if (currentStock == null) {
+            currentStock = 0;
+        }
+        
+        // Ensure we don't go below zero
+        if (currentStock < quantity) {
+            throw new ProductDetailException(
+                "INSUFFICIENT_STOCK",
+                "Cannot decrease stock by " + quantity + " as only " + currentStock + " units are available"
+            );
+        }
+        
+        // Update quantity
+        productDetail.setQuantityInStock(currentStock - quantity);
+        
+        return productDetailRepository.save(productDetail);
+    }
+
     /**
      * Validate a product detail
      * 

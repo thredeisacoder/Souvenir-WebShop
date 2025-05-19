@@ -36,6 +36,7 @@ import project.demo.repository.PaymentRepository;
 import project.demo.repository.ProductRepository;
 import project.demo.repository.ShipmentRepository;
 import project.demo.service.IOrderService;
+import project.demo.service.IProductDetailService;
 
 /**
  * Implementation of the IOrderService interface for managing Order entities
@@ -53,6 +54,7 @@ public class OrderServiceImpl implements IOrderService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final PaymentRepository paymentRepository;
     private final ShipmentRepository shipmentRepository;
+    private final IProductDetailService productDetailService;
 
     public OrderServiceImpl(OrderRepository orderRepository,
             OrderDetailRepository orderDetailRepository,
@@ -63,7 +65,8 @@ public class OrderServiceImpl implements IOrderService {
             AddressRepository addressRepository,
             PaymentMethodRepository paymentMethodRepository,
             PaymentRepository paymentRepository,
-            ShipmentRepository shipmentRepository) {
+            ShipmentRepository shipmentRepository,
+            IProductDetailService productDetailService) {
         this.orderRepository = orderRepository;
         this.orderDetailRepository = orderDetailRepository;
         this.orderTimelineEventRepository = orderTimelineEventRepository;
@@ -74,6 +77,7 @@ public class OrderServiceImpl implements IOrderService {
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentRepository = paymentRepository;
         this.shipmentRepository = shipmentRepository;
+        this.productDetailService = productDetailService;
     }
 
     @Override
@@ -138,6 +142,14 @@ public class OrderServiceImpl implements IOrderService {
             
             orderDetails.add(detail);
             subtotal = subtotal.add(detail.getSubtotal());
+            
+            // Giảm số lượng trong kho sau khi thanh toán
+            try {
+                productDetailService.decreaseStockQuantity(item.getProductId(), item.getQuantity());
+            } catch (Exception e) {
+                throw new OrderException("Could not decrease stock quantity for product ID " + 
+                    item.getProductId() + ": " + e.getMessage());
+            }
         }
         
         savedOrder.setSubtotal(subtotal);

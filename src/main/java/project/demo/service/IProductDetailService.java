@@ -60,6 +60,16 @@ public interface IProductDetailService {
     ProductDetail updateStockQuantity(Integer productId, Integer quantity);
     
     /**
+     * Decrease the stock quantity of a product
+     * 
+     * @param productId the ID of the product
+     * @param quantity the quantity to decrease
+     * @return the updated product detail
+     * @throws project.demo.exception.ProductDetailException if resulting quantity would be negative
+     */
+    ProductDetail decreaseStockQuantity(Integer productId, Integer quantity);
+    
+    /**
      * Update the image URL of a product
      * 
      * @param productId the ID of the product
