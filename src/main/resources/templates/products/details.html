@@ -305,7 +305,7 @@
                 <div class="col-lg-6 mb-4 mb-lg-0">
                     <div class="product-image">
                         <img th:if="${productDetail != null && productDetail.imageUrl != null}" 
-                             th:src="@{'/' + ${productDetail.imageUrl}}" 
+                             th:src="${productDetail.imageUrl}" 
                              alt="Product Image">
                         <img th:unless="${productDetail != null && productDetail.imageUrl != null}" 
                              th:src="@{/assets/img/placeholder.jpg}" 
@@ -454,7 +454,7 @@
                             <div class="related-product-thumb">
                                 <a th:href="@{/products/{id}(id=${relatedProduct.productId})}">
                                     <img th:if="${relatedProductImages.containsKey(relatedProduct.productId)}" 
-                                         th:src="@{'/' + ${relatedProductImages.get(relatedProduct.productId)}}" 
+                                         th:src="${relatedProductImages.get(relatedProduct.productId)}" 
                                          alt="Related Product">
                                     <img th:unless="${relatedProductImages.containsKey(relatedProduct.productId)}" 
                                          th:src="@{/assets/img/placeholder.jpg}" 

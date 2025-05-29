@@ -70,6 +70,15 @@ public interface IProductDetailService {
     ProductDetail decreaseStockQuantity(Integer productId, Integer quantity);
     
     /**
+     * Increase the stock quantity of a product
+     * 
+     * @param productId the ID of the product
+     * @param quantity the quantity to increase
+     * @return the updated product detail
+     */
+    ProductDetail increaseStockQuantity(Integer productId, Integer quantity);
+    
+    /**
      * Update the image URL of a product
      * 
      * @param productId the ID of the product

@@ -354,7 +354,7 @@
                             <div class="product-item" th:each="item : ${orderDetails}">
                                 <div class="product-image">
                                     <img th:if="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
-                                         th:src="${'/' + item.product.productDetails[0].imageUrl}" alt="Product Image">
+                                         th:src="${item.product.productDetails[0].imageUrl}" alt="Product Image">
                                     <img th:unless="${item.product != null && item.product.productDetails != null && !item.product.productDetails.isEmpty() && item.product.productDetails[0].imageUrl != null}" 
                                          src="/assets/img/product-placeholder.jpg" alt="Product Image">
                                 </div>
@@ -407,7 +407,18 @@
                                 <div class="timeline-item" th:each="event : ${timelineEvents}">
                                     <div class="timeline-content">
                                         <div class="timeline-date" th:text="${#temporals.format(event.timestamp, 'dd/MM/yyyy HH:mm')}">01/01/2023 14:30</div>
-                                        <div class="timeline-title" th:text="${event.status}">Đặt hàng thành công</div>
+                                        <div class="timeline-title" th:switch="${event.status}">
+                                            <span th:case="'cancelled'">Cancelled</span>
+                                            <span th:case="'Order Placed'">Order Placed</span>
+                                            <span th:case="'pending'">Pending</span>
+                                            <span th:case="'orderNew'">Order Created</span>
+                                            <span th:case="'shipped'">Shipped</span>
+                                            <span th:case="'delivered'">Delivered</span>
+                                            <span th:case="'processing_payment_verification'">Processing Payment</span>
+                                            <span th:case="'processing_payment_confirmed'">Payment Confirmed</span>
+                                            <span th:case="'processing_packing'">Packing Order</span>
+                                            <span th:case="*" th:text="${event.status}">Default Status</span>
+                                        </div>
                                         <div class="timeline-description" th:text="${event.description}">Đơn hàng của bạn đã được đặt thành công.</div>
                                     </div>
                                 </div>
@@ -422,21 +433,26 @@
                                 <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách đơn hàng
                             </a>
                             
-                            <!-- Nút hủy đơn hàng (chỉ hiển thị khi đơn hàng có thể hủy) -->
-                            <form th:if="${order.orderStatus == 'PENDING' || order.orderStatus == 'PROCESSING'}" 
+                            <!-- Nút hủy đơn hàng (thay thế nút mua lại) -->
+                            <form th:if="${order.orderStatus == 'orderNew' || order.orderStatus == 'pending' || order.orderStatus == 'processing_payment_verification' || order.orderStatus == 'processing_payment_confirmed' || order.orderStatus == 'processing_packing'}" 
                                   th:action="@{/account/orders/{id}/cancel(id=${order.orderId})}" 
                                   method="post" 
                                   class="d-inline-block w-100 mb-3">
-                                <button type="submit" class="btn btn-outline-danger w-100" 
+                                <button type="submit" class="btn btn-danger w-100" 
                                         onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
                                     <i class="fas fa-times me-2"></i>Hủy đơn hàng
                                 </button>
                             </form>
                             
-                            <!-- Nút mua lại -->
-                            <a href="#" class="btn btn-primary w-100">
-                                <i class="fas fa-redo me-2"></i>Mua lại
-                            </a>
+                            <!-- Thông báo khi đơn hàng không thể hủy -->
+                            <div th:if="${order.orderStatus != 'orderNew' && order.orderStatus != 'pending' && order.orderStatus != 'processing_payment_verification' && order.orderStatus != 'processing_payment_confirmed' && order.orderStatus != 'processing_packing'}" 
+                                 class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span th:if="${order.orderStatus == 'cancelled'}">Đơn hàng đã được hủy</span>
+                                <span th:if="${order.orderStatus == 'delivered'}">Đơn hàng đã được giao thành công</span>
+                                <span th:if="${order.orderStatus == 'shipped' || order.orderStatus == 'in_transit' || order.orderStatus == 'out_for_delivery'}">Đơn hàng đang vận chuyển, không thể hủy</span>
+                                <span th:unless="${order.orderStatus == 'cancelled' || order.orderStatus == 'delivered' || order.orderStatus == 'shipped' || order.orderStatus == 'in_transit' || order.orderStatus == 'out_for_delivery'}">Đơn hàng không thể hủy ở trạng thái hiện tại</span>
+                            </div>
                         </div>
 
                         <!-- Shipping Information -->

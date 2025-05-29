@@ -311,7 +311,7 @@
                                 <div class="product-thumb">
                                     <a th:href="@{/products/{id}(id=${product.productId})}">
                                         <img th:if="${productImages.containsKey(product.productId)}" 
-                                             th:src="@{'/' + ${productImages.get(product.productId)}}" 
+                                             th:src="${productImages.get(product.productId)}" 
                                              alt="Product Image">
                                         <img th:unless="${productImages.containsKey(product.productId)}" 
                                              th:src="@{/assets/img/placeholder.jpg}" 

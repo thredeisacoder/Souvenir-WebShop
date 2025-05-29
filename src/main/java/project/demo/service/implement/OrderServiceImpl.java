@@ -259,14 +259,59 @@ public class OrderServiceImpl implements IOrderService {
         }
         
         Order order = optionalOrder.get();
+        
+        // Kiểm tra xem đơn hàng có thể hủy hay không
+        if (!OrderStatus.NEW.getValue().equals(order.getOrderStatus()) &&
+            !OrderStatus.PENDING.getValue().equals(order.getOrderStatus()) && 
+            !"processing_payment_verification".equals(order.getOrderStatus()) &&
+            !"processing_payment_confirmed".equals(order.getOrderStatus()) &&
+            !"processing_packing".equals(order.getOrderStatus())) {
+            throw new OrderException("Cannot cancel order with status: " + order.getOrderStatus());
+        }
+        
+        // Hoàn trả số lượng sản phẩm vào kho
+        List<OrderDetail> orderDetails = getOrderDetails(orderId);
+        for (OrderDetail detail : orderDetails) {
+            try {
+                productDetailService.increaseStockQuantity(detail.getProductId(), detail.getQuantity());
+            } catch (Exception e) {
+                throw new OrderException("Could not restore stock quantity for product ID " + 
+                    detail.getProductId() + ": " + e.getMessage());
+            }
+        }
+        
+        // Cập nhật trạng thái đơn hàng
         order.setOrderStatus(OrderStatus.CANCELLED.getValue());
         orderRepository.save(order);
         
+        // Cập nhật trạng thái thanh toán thành FAILED (không có CANCELLED trong PaymentStatus)
+        List<Payment> payments = paymentRepository.findByOrderId(orderId);
+        for (Payment payment : payments) {
+            if (PaymentStatus.PENDING.getValue().equals(payment.getPaymentStatus())) {
+                payment.setPaymentStatus(PaymentStatus.FAILED.getValue());
+                payment.setNote("Payment failed due to order cancellation");
+                paymentRepository.save(payment);
+            }
+        }
+        
+        // Cập nhật trạng thái vận chuyển thành FAILED (không có CANCELLED trong ShipmentStatus)
+        Optional<Shipment> shipmentOpt = shipmentRepository.findByOrderId(orderId);
+        if (shipmentOpt.isPresent()) {
+            Shipment shipment = shipmentOpt.get();
+            if (ShipmentStatus.PENDING.getValue().equals(shipment.getShipmentStatus())) {
+                shipment.setShipmentStatus(ShipmentStatus.FAILED.getValue());
+                shipmentRepository.save(shipment);
+            }
+        }
+        
+        // Thêm timeline event
         OrderTimelineEvent timelineEvent = new OrderTimelineEvent();
         timelineEvent.setOrderId(order.getOrderId());
         timelineEvent.setStatus(OrderStatus.CANCELLED);
         timelineEvent.setTimestamp(LocalDateTime.now());
-        timelineEvent.setNote("Order cancelled");
+        timelineEvent.setIcon("fa-times-circle");
+        timelineEvent.setIconBackgroundColor("bg-danger");
+        timelineEvent.setDescription("Đơn hàng đã được hủy.");
         orderTimelineEventRepository.save(timelineEvent);
     }
     

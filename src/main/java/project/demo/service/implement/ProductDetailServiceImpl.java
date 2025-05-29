@@ -324,6 +324,40 @@ public class ProductDetailServiceImpl implements IProductDetailService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public ProductDetail increaseStockQuantity(Integer productId, Integer quantity) {
+        // Check if product exists
+        if (!productRepository.existsById(productId)) {
+            throw new ResourceNotFoundException("PRODUCT_NOT_FOUND", 
+                    "Product not found with ID: " + productId);
+        }
+        
+        // Check if product detail exists
+        ProductDetail productDetail = findByProductId(productId);
+        
+        // Validate quantity
+        if (quantity < 0) {
+            throw new ProductDetailException(
+                "INVALID_QUANTITY",
+                "Increment quantity cannot be negative: " + quantity
+            );
+        }
+        
+        Integer currentStock = productDetail.getQuantityInStock();
+        if (currentStock == null) {
+            currentStock = 0;
+        }
+        
+        // Update quantity
+        productDetail.setQuantityInStock(currentStock + quantity);
+        
+        return productDetailRepository.save(productDetail);
+    }
+
+    /**
      * Validate a product detail
      * 
      * @param productDetail the product detail to validate
