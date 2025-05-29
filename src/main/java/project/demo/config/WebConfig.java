@@ -6,6 +6,9 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Web configuration để đảm bảo xử lý 404 error đúng cách
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     

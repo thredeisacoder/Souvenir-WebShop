@@ -7,6 +7,8 @@ import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -16,6 +18,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -24,6 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * Provides consistent error responses for various exception types.
  */
 @ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -146,6 +152,94 @@ public class GlobalExceptionHandler {
         logger.error("MethodArgumentTypeMismatchException: {}", ex.getMessage(), ex);
         
         return new ResponseEntity<>(errorResponse, status);
+    }
+    
+    /**
+     * Handles 404 Not Found exceptions.
+     * Returns a custom 404 page for browser requests or JSON for API requests.
+     * 
+     * @param ex the exception
+     * @param request the HTTP request
+     * @return a ModelAndView with the custom 404 page for browsers, or ResponseEntity for APIs
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public Object handleNotFound(NoHandlerFoundException ex, HttpServletRequest request) {
+        logger.warn("404 Not Found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
+        
+        // Check if this is an API request (accepts JSON) or a browser request (accepts HTML)
+        String acceptHeader = request.getHeader("Accept");
+        boolean isApiRequest = acceptHeader != null && 
+                              (acceptHeader.contains("application/json") || 
+                               acceptHeader.contains("application/xml")) &&
+                              !acceptHeader.contains("text/html");
+        
+        if (isApiRequest) {
+            // Return JSON response for API requests
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            ErrorResponse errorResponse = buildErrorResponse(
+                "RESOURCE_NOT_FOUND", 
+                "The requested endpoint does not exist", 
+                status, 
+                request.getRequestURI()
+            );
+            return new ResponseEntity<>(errorResponse, status);
+        } else {
+            // Return HTML page for browser requests
+            ModelAndView modelAndView = new ModelAndView();
+            modelAndView.setViewName("error/404");
+            modelAndView.setStatus(HttpStatus.NOT_FOUND);
+            
+            // Thêm thông tin bổ sung cho template nếu cần
+            modelAndView.addObject("requestUrl", ex.getRequestURL().toString());
+            modelAndView.addObject("method", ex.getHttpMethod());
+            modelAndView.addObject("timestamp", LocalDateTime.now());
+            
+            return modelAndView;
+        }
+    }
+    
+    /**
+     * Handles NoResourceFoundException (static resource not found).
+     * Returns a custom 404 page for browser requests or JSON for API requests.
+     * 
+     * @param ex the exception
+     * @param request the HTTP request
+     * @return a ModelAndView with the custom 404 page for browsers, or ResponseEntity for APIs
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Object handleNoResourceFoundException(NoResourceFoundException ex, HttpServletRequest request) {
+        logger.warn("No resource found: {}", ex.getResourcePath());
+        
+        // Check if this is an API request or browser request
+        String acceptHeader = request.getHeader("Accept");
+        String requestUri = request.getRequestURI();
+        
+        // Force HTML response for all requests not starting with /api/
+        boolean isApiRequest = requestUri != null && requestUri.startsWith("/api/");
+        
+        if (isApiRequest) {
+            // Return JSON response for API requests
+            HttpStatus status = HttpStatus.NOT_FOUND;
+            ErrorResponse errorResponse = buildErrorResponse(
+                "RESOURCE_NOT_FOUND", 
+                "The requested resource does not exist", 
+                status, 
+                request.getRequestURI()
+            );
+            return new ResponseEntity<>(errorResponse, status);
+        } else {
+            // Return HTML page for browser requests
+            ModelAndView modelAndView = new ModelAndView();
+            modelAndView.setViewName("error/404");
+            modelAndView.setStatus(HttpStatus.NOT_FOUND);
+            
+            // Thêm thông tin bổ sung cho template
+            modelAndView.addObject("requestUrl", request.getRequestURI());
+            modelAndView.addObject("method", request.getMethod());
+            modelAndView.addObject("timestamp", LocalDateTime.now());
+            
+            return modelAndView;
+        }
     }
     
     /**
