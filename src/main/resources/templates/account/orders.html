@@ -224,7 +224,7 @@
                                 </div>
                                 <div class="col-md-4 text-md-end">
                                     <div class="mb-3">
-                                        <span th:class="${'order-status ' + 
+                                        <!-- <span th:class="${'order-status ' + 
                                                         (order.orderStatus == 'PENDING' ? 'status-pending' : 
                                                         (order.orderStatus == 'PROCESSING' ? 'status-processing' : 
                                                         (order.orderStatus == 'SHIPPED' ? 'status-shipped' : 
@@ -237,7 +237,7 @@
                                                         (order.orderStatus == 'CANCELLED' ? 'Đã hủy' : order.orderStatus))))}">
                                                 Trạng thái
                                             </span>
-                                        </span>
+                                        </span> -->
                                     </div>
                                     <div class="order-action">
                                         <a th:href="@{/account/orders/{id}(id=${order.orderId})}" class="btn btn-outline-primary">
