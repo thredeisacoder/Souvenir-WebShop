@@ -614,6 +614,17 @@ SOFTWARE.
       <a href="https://github.com/thredeisacoder/Souvenir-WebShop/commits?author=thredeisacoder" title="Documentation">📖</a>
       <a href="#maintenance-thredeisacoder" title="Maintenance">🚧</a>
     </td>
+    <td align="center">
+      <a href="https://github.com/DangPhuocTruongSinh">
+        <img src="https://github.com/DangPhuocTruongSinh.png" width="100px;" alt="DangPhuocTruongSinh"/>
+        <br />
+        <sub><b>DangPhuocTruongSinh</b></sub>
+      </a>
+      <br />
+      <a href="https://github.com/thredeisacoder/Souvenir-WebShop/commits?author=thredeisacoder" title="Code">💻</a>
+      <a href="https://github.com/thredeisacoder/Souvenir-WebShop/commits?author=thredeisacoder" title="Documentation">📖</a>
+      <a href="#maintenance-thredeisacoder" title="Maintenance">🚧</a>
+    </td>
   </tr>
 </table>
 
