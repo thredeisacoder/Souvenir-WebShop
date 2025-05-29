@@ -9,7 +9,18 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/github/stars/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub stars">
+  <img src="https://img.shields.io/github/forks/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub forks">
+  <img src="https://img.shields.io/github/watchers/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub watchers">
+  <img src="https://img.shields.io/github/commit-activity/m/thredeisacoder/Souvenir-WebShop" alt="Commit Activity">
+</p>
+
+<p align="center">
   <em>Hệ thống thương mại điện tử chuyên nghiệp cho quà lưu niệm với Spring Boot và Thymeleaf</em>
+</p>
+
+<p align="center">
+  <strong>🔗 Repository:</strong> <a href="https://github.com/thredeisacoder/Souvenir-WebShop">github.com/thredeisacoder/Souvenir-WebShop</a>
 </p>
 
 ---
@@ -19,6 +30,7 @@
 - [🎯 Giới thiệu](#-giới-thiệu)
 - [✨ Tính năng](#-tính-năng)
 - [🛠️ Công nghệ](#️-công-nghệ)
+- [📊 Repository Stats](#-repository-stats)
 - [📁 Cấu trúc dự án](#-cấu-trúc-dự-án)
 - [🚀 Bắt đầu](#-bắt-đầu)
 - [⚙️ Cấu hình](#️-cấu-hình)
@@ -27,10 +39,13 @@
 - [📝 API Documentation](#-api-documentation)
 - [🤝 Đóng góp](#-đóng-góp)
 - [📄 Giấy phép](#-giấy-phép)
+- [👥 Tác giả](#-tác-giả)
 
 ## 🎯 Giới thiệu
 
 **Souvenir WebShop** là một hệ thống thương mại điện tử toàn diện được thiết kế đặc biệt cho việc kinh doanh quà lưu niệm. Ứng dụng được xây dựng trên nền tảng Spring Boot 3.2.3 với Java 21, cung cấp trải nghiệm mua sắm hiện đại và các công cụ quản lý mạnh mẽ.
+
+Dự án này được phát triển bởi [thredeisacoder](https://github.com/thredeisacoder) và đang được phát triển tích cực với **23+ commits** và nhiều tính năng mới.
 
 ### 🎨 Workflow
 ```
@@ -104,6 +119,24 @@
 - **jsass**: SCSS processing in Java
 - **thymeleaf-layout-dialect**: Advanced templating
 - **mssql-jdbc**: SQL Server connectivity
+
+## 📊 Repository Stats
+
+```
+📈 GitHub Repository: thredeisacoder/Souvenir-WebShop
+├── 🌟 Stars: 1
+├── 🍴 Forks: 0
+├── 👀 Watchers: 1
+├── 📝 Commits: 23+
+└── 🏷️ Releases: Coming soon
+```
+
+### **Ngôn ngữ sử dụng:**
+- **Java**: 63.7% (Backend logic & business layer)
+- **HTML**: 32.5% (Thymeleaf templates)
+- **JavaScript**: 2.6% (Client-side functionality)
+- **CSS**: 1.1% (Compiled styles)
+- **SCSS**: 0.1% (Source stylesheets)
 
 ## 📁 Cấu trúc dự án
 
@@ -202,7 +235,7 @@ Souvenir-WebShop/
 
 #### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/yourusername/Souvenir-WebShop.git
+git clone https://github.com/thredeisacoder/Souvenir-WebShop.git
 cd Souvenir-WebShop
 ```
 
@@ -498,9 +531,11 @@ mvn test jacoco:report
 
 ## 🤝 Đóng góp
 
+Chúng tôi hoan nghênh mọi đóng góp từ cộng đồng! Đây là cách bạn có thể tham gia:
+
 ### 🔄 Development Workflow
 
-1. **Fork** repository trên GitHub
+1. **Fork** repository tại [GitHub](https://github.com/thredeisacoder/Souvenir-WebShop)
 2. **Clone** fork về local machine
 3. **Create branch** cho feature/bugfix
 ```bash
@@ -529,6 +564,13 @@ Include trong bug report:
 - **Expected vs Actual**: Kết quả mong đợi và thực tế
 - **Screenshots/Logs**: Nếu có
 
+### 💡 Feature Requests
+
+Chúng tôi luôn mở lòng với ý tưởng mới! Tạo [Issue](https://github.com/thredeisacoder/Souvenir-WebShop/issues) với:
+- **Problem**: Vấn đề hiện tại
+- **Solution**: Giải pháp đề xuất
+- **Use cases**: Trường hợp sử dụng
+
 ## 📄 Giấy phép
 
 Dự án này được phát hành dưới **MIT License**.
@@ -536,7 +578,7 @@ Dự án này được phát hành dưới **MIT License**.
 ```
 MIT License
 
-Copyright (c) 2024 Souvenir WebShop
+Copyright (c) 2024 thredeisacoder
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -547,7 +589,38 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
+
+## 👥 Tác giả
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/thredeisacoder">
+        <img src="https://github.com/thredeisacoder.png" width="100px;" alt="thredeisacoder"/>
+        <br />
+        <sub><b>thredeisacoder</b></sub>
+      </a>
+      <br />
+      <a href="https://github.com/thredeisacoder/Souvenir-WebShop/commits?author=thredeisacoder" title="Code">💻</a>
+      <a href="https://github.com/thredeisacoder/Souvenir-WebShop/commits?author=thredeisacoder" title="Documentation">📖</a>
+      <a href="#maintenance-thredeisacoder" title="Maintenance">🚧</a>
+    </td>
+  </tr>
+</table>
+
+### 🌟 Connect với tôi:
+- 🔗 **GitHub**: [@thredeisacoder](https://github.com/thredeisacoder)
+- 💼 **Repository**: [Souvenir-WebShop](https://github.com/thredeisacoder/Souvenir-WebShop)
+- 📧 **Issues**: [Report bugs & suggest features](https://github.com/thredeisacoder/Souvenir-WebShop/issues)
 
 ---
 
@@ -556,13 +629,20 @@ copies or substantial portions of the Software.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/yourusername/Souvenir-WebShop?style=social" alt="GitHub stars">
-  <img src="https://img.shields.io/github/forks/yourusername/Souvenir-WebShop?style=social" alt="GitHub forks">
-  <img src="https://img.shields.io/github/watchers/yourusername/Souvenir-WebShop?style=social" alt="GitHub watchers">
+  <a href="https://github.com/thredeisacoder/Souvenir-WebShop/stargazers">
+    <img src="https://img.shields.io/github/stars/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub stars">
+  </a>
+  <a href="https://github.com/thredeisacoder/Souvenir-WebShop/network/members">
+    <img src="https://img.shields.io/github/forks/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub forks">
+  </a>
+  <a href="https://github.com/thredeisacoder/Souvenir-WebShop/watchers">
+    <img src="https://img.shields.io/github/watchers/thredeisacoder/Souvenir-WebShop?style=social" alt="GitHub watchers">
+  </a>
 </p>
 
 ---
 
 <p align="center">
-  <sub>🚀 Built with ❤️ using Spring Boot 3.2.3 & Java 21</sub>
+  <sub>🚀 Built with ❤️ using Spring Boot 3.2.3 & Java 21 by 
+  <a href="https://github.com/thredeisacoder">@thredeisacoder</a></sub>
 </p>
