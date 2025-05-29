@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import project.demo.exception.AddressException;
 import project.demo.exception.CustomerException;
+import project.demo.exception.DuplicateAddressException;
 import project.demo.exception.ResourceNotFoundException;
 import project.demo.model.Address;
 import project.demo.model.CardDetails;
@@ -245,6 +247,13 @@ public class CheckoutController {
             address.setIsDefault(isDefault != null && isDefault);
 
             // Save to database
+            System.out.println("=== CheckoutController.addAddress - About to save address ===");
+            System.out.println("Customer ID: " + customer.getCustomerId());
+            System.out.println("Address Line: " + addressLine);
+            System.out.println("City: " + city);
+            System.out.println("Country: " + country);
+            System.out.println("=======================================================");
+            
             Address savedAddress = addressService.save(address);
 
             // Set as selected address for checkout
@@ -252,6 +261,16 @@ public class CheckoutController {
 
             redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được thêm thành công");
             return "redirect:/checkout/shipping";
+        } catch (DuplicateAddressException e) {
+            System.out.println("=== CheckoutController caught DuplicateAddressException ===");
+            System.out.println("Exception message: " + e.getMessage());
+            System.out.println("Setting errorMessage flash attribute: " + e.getMessage());
+            System.out.println("=========================================================");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/checkout/address";
+        } catch (AddressException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/checkout/address";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/checkout/address";
@@ -887,7 +906,7 @@ public class CheckoutController {
         List<Map<String, Object>> methods = List.of(
             createShippingMethod("standard", "Giao hàng tiêu chuẩn", "Giao hàng trong 3-5 ngày làm việc", "3-5 ngày làm việc", new BigDecimal("30000")),
             createShippingMethod("express", "Giao hàng nhanh", "Giao hàng trong 1-2 ngày làm việc", "1-2 ngày làm việc", new BigDecimal("50000")),
-            createShippingMethod("same_day", "Giao hàng trong ngày", "Chỉ áp dụng cho đơn hàng đặt trước 13:00", "Trong ngày", new BigDecimal("70000"))
+            createShippingMethod("same_day", "Giao hàng trong ngày", "Giao hàng trong 2-4 tiếng", "Trong ngày", new BigDecimal("70000"))
         );
         
         return methods;

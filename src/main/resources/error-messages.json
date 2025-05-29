@@ -139,6 +139,10 @@
     {
       "messageCode": "INVALID_INPUT",
       "description": "Giá trị không hợp lệ"
+    },
+    {
+      "messageCode": "DUPLICATE_ADDRESS",
+      "description": "Địa chỉ đã tồn tại"
     }
   ]
 }

@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import project.demo.exception.AddressException;
+import project.demo.exception.DuplicateAddressException;
 import project.demo.exception.ResourceNotFoundException;
 import project.demo.model.Address;
 import project.demo.repository.AddressRepository;
 import project.demo.service.IAddressService;
+import project.demo.util.ValidationErrorMessages;
 
 /**
  * Implementation of the IAddressService interface for managing Address entities
@@ -18,9 +20,11 @@ import project.demo.service.IAddressService;
 public class AddressServiceImpl implements IAddressService {
 
     private final AddressRepository addressRepository;
+    private final ValidationErrorMessages validationErrorMessages;
 
-    public AddressServiceImpl(AddressRepository addressRepository) {
+    public AddressServiceImpl(AddressRepository addressRepository, ValidationErrorMessages validationErrorMessages) {
         this.addressRepository = addressRepository;
+        this.validationErrorMessages = validationErrorMessages;
     }
 
     /**
@@ -65,6 +69,18 @@ public class AddressServiceImpl implements IAddressService {
             throw AddressException.missingRequiredField("Country");
         }
 
+        // Check for duplicate address
+        var existingAddress = addressRepository.findByCustomerIdAndAddressLineIgnoreCaseAndCityIgnoreCaseAndCountryIgnoreCase(
+                address.getCustomerId(), 
+                address.getAddressLine().trim(),
+                address.getCity().trim(), 
+                address.getCountry().trim());
+        
+        if (existingAddress.isPresent()) {
+            String errorMessage = validationErrorMessages.getMessage("DUPLICATE_ADDRESS");
+            throw new DuplicateAddressException("DUPLICATE_ADDRESS", errorMessage);
+        }
+
         // Đảm bảo isDefault không bị null
         if (address.getIsDefault() == null) {
             address.setIsDefault(false);
@@ -76,10 +92,10 @@ public class AddressServiceImpl implements IAddressService {
             List<Address> customerAddresses = addressRepository.findByCustomerId(address.getCustomerId());
 
             // Update all existing addresses to not be default
-            for (Address existingAddress : customerAddresses) {
-                if (Boolean.TRUE.equals(existingAddress.getIsDefault())) {
-                    existingAddress.setIsDefault(false);
-                    addressRepository.save(existingAddress);
+            for (Address existingAddr : customerAddresses) {
+                if (Boolean.TRUE.equals(existingAddr.getIsDefault())) {
+                    existingAddr.setIsDefault(false);
+                    addressRepository.save(existingAddr);
                 }
             }
         }
@@ -119,6 +135,18 @@ public class AddressServiceImpl implements IAddressService {
         }
         if (address.getCountry() == null || address.getCountry().trim().isEmpty()) {
             throw AddressException.missingRequiredField("Country");
+        }
+
+        // Check for duplicate address (excluding the current address being updated)
+        var duplicateAddress = addressRepository.findByCustomerIdAndAddressLineIgnoreCaseAndCityIgnoreCaseAndCountryIgnoreCase(
+                address.getCustomerId(), 
+                address.getAddressLine().trim(),
+                address.getCity().trim(), 
+                address.getCountry().trim());
+        
+        if (duplicateAddress.isPresent() && !duplicateAddress.get().getAddressId().equals(address.getAddressId())) {
+            String errorMessage = validationErrorMessages.getMessage("DUPLICATE_ADDRESS");
+            throw new DuplicateAddressException("DUPLICATE_ADDRESS", errorMessage);
         }
 
         // Handle default address

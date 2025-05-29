@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import project.demo.exception.AddressException;
 import project.demo.exception.CustomerException;
+import project.demo.exception.DuplicateAddressException;
 import project.demo.model.Address;
 import project.demo.model.Customer;
 import project.demo.service.IAddressService;
@@ -122,6 +124,14 @@ public class AddressController {
 
             redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được thêm thành công");
             return "redirect:/account/addresses";
+        } catch (DuplicateAddressException e) {
+            // Handle duplicate address specifically
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
+        } catch (AddressException e) {
+            // Handle AddressException specifically to get the proper error message
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account/addresses";
@@ -176,8 +186,16 @@ public class AddressController {
             addressService.update(address);
             redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được cập nhật thành công");
             return "redirect:/account/addresses";
+        } catch (DuplicateAddressException e) {
+            // Handle duplicate address specifically
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
+        } catch (AddressException e) {
+            // Handle AddressException specifically to get the proper error message
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account/addresses";
         }
     }
@@ -223,8 +241,12 @@ public class AddressController {
             addressService.delete(addressId);
             redirectAttributes.addFlashAttribute("successMessage", "Địa chỉ đã được xóa thành công");
             return "redirect:/account/addresses";
+        } catch (AddressException e) {
+            // Handle AddressException specifically to get the proper error message
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account/addresses";
         }
     }
@@ -257,8 +279,12 @@ public class AddressController {
             addressService.setAsDefault(addressId, customer.getCustomerId());
             redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật địa chỉ mặc định thành công");
             return "redirect:/account/addresses";
+        } catch (AddressException e) {
+            // Handle AddressException specifically to get the proper error message
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/account/addresses";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/account/addresses";
         }
     }

@@ -1,30 +1,39 @@
 package project.demo.service.implement;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import org.mockito.Mock;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
+
 import project.demo.exception.AddressException;
 import project.demo.exception.ResourceNotFoundException;
 import project.demo.model.Address;
 import project.demo.model.Order;
 import project.demo.repository.AddressRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import project.demo.util.ValidationErrorMessages;
 
 class AddressServiceImplTest {
 
     @Mock
     private AddressRepository addressRepository;
 
-    @InjectMocks
+    private ValidationErrorMessages validationErrorMessages;
     private AddressServiceImpl addressService;
 
     private Address testAddress;
@@ -33,6 +42,12 @@ class AddressServiceImplTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        // Create real instance of ValidationErrorMessages
+        validationErrorMessages = new ValidationErrorMessages();
+        
+        // Create AddressServiceImpl with real ValidationErrorMessages
+        addressService = new AddressServiceImpl(addressRepository, validationErrorMessages);
 
         // Setup test address
         testAddress = new Address();
@@ -163,6 +178,27 @@ class AddressServiceImplTest {
     }
 
     @Test
+    void save_DuplicateAddress_ThrowsException() {
+        // Arrange
+        Address newAddress = new Address();
+        newAddress.setCustomerId(1);
+        newAddress.setAddressLine("123 Test Street");
+        newAddress.setCity("Test City");
+        newAddress.setCountry("Test Country");
+
+        // Mock repository to return existing address when checking for duplicates
+        when(addressRepository.findByCustomerIdAndAddressLineIgnoreCaseAndCityIgnoreCaseAndCountryIgnoreCase(
+                1, "123 Test Street", "Test City", "Test Country"))
+                .thenReturn(Optional.of(testAddress));
+
+        // Act & Assert
+        AddressException exception = assertThrows(AddressException.class, () -> addressService.save(newAddress));
+        assertEquals("DUPLICATE_ADDRESS", exception.getErrorCode());
+        assertTrue(exception.getMessage().contains("Địa chỉ đã tồn tại"));
+        verify(addressRepository, never()).save(any(Address.class));
+    }
+
+    @Test
     void update_ValidAddress_UpdatesAddress() {
         // Arrange
         when(addressRepository.findById(1)).thenReturn(Optional.of(testAddress));
@@ -212,6 +248,40 @@ class AddressServiceImplTest {
 
         // Act & Assert
         assertThrows(AddressException.class, () -> addressService.update(address));
+        verify(addressRepository, times(1)).findById(1);
+        verify(addressRepository, never()).save(any(Address.class));
+    }
+
+    @Test
+    void update_DuplicateAddress_ThrowsException() {
+        // Arrange
+        when(addressRepository.findById(1)).thenReturn(Optional.of(testAddress));
+
+        // Create another existing address with different ID but same details
+        Address existingDuplicateAddress = new Address();
+        existingDuplicateAddress.setAddressId(2); // Different ID
+        existingDuplicateAddress.setCustomerId(1);
+        existingDuplicateAddress.setAddressLine("456 Different Street");
+        existingDuplicateAddress.setCity("Different City");
+        existingDuplicateAddress.setCountry("Different Country");
+
+        // Update address with same details as another existing address
+        Address updateAddress = new Address();
+        updateAddress.setAddressId(1);
+        updateAddress.setCustomerId(1);
+        updateAddress.setAddressLine("456 Different Street");
+        updateAddress.setCity("Different City");
+        updateAddress.setCountry("Different Country");
+
+        // Mock repository to return existing duplicate address
+        when(addressRepository.findByCustomerIdAndAddressLineIgnoreCaseAndCityIgnoreCaseAndCountryIgnoreCase(
+                1, "456 Different Street", "Different City", "Different Country"))
+                .thenReturn(Optional.of(existingDuplicateAddress));
+
+        // Act & Assert
+        AddressException exception = assertThrows(AddressException.class, () -> addressService.update(updateAddress));
+        assertEquals("DUPLICATE_ADDRESS", exception.getErrorCode());
+        assertTrue(exception.getMessage().contains("Địa chỉ đã tồn tại"));
         verify(addressRepository, times(1)).findById(1);
         verify(addressRepository, never()).save(any(Address.class));
     }

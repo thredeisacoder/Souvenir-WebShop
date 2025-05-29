@@ -136,16 +136,21 @@
 .summary-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
+    padding: 8px 0;
 }
 
 .summary-label {
     color: #666;
+    flex: 1;
 }
 
 .summary-value {
     font-weight: 500;
     color: #333;
+    text-align: right;
+    margin-left: 20px;
 }
 
 .summary-total {
@@ -153,16 +158,23 @@
     padding-top: 15px;
     margin-top: 15px;
     font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .summary-total .summary-label {
     font-weight: 600;
     color: #333;
+    flex: 1;
 }
 
 .summary-total .summary-value {
     font-weight: 700;
     color: #0e7c7b;
+    font-size: 1.2rem;
+    text-align: right;
+    margin-left: 20px;
 }
 
 .checkout-btn {

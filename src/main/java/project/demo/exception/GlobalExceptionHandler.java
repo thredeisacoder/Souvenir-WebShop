@@ -1,5 +1,10 @@
 package project.demo.exception;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -13,10 +18,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 /**
  * Global exception handler for the application.
@@ -28,7 +29,8 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     /**
-     * Handles BaseException and its subclasses.
+     * Handles BaseException and its subclasses, except AddressException.
+     * AddressException is handled by controllers for proper web form responses.
      * 
      * @param ex the exception
      * @param request the HTTP request
@@ -36,6 +38,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex, HttpServletRequest request) {
+        // Let controllers handle AddressException for web form responses
+        if (ex instanceof AddressException) {
+            throw ex;
+        }
+        
         HttpStatus status = resolveStatus(ex);
         ErrorResponse errorResponse = buildErrorResponse(ex.getErrorCode(), ex.getMessage(), status, request.getRequestURI());
         

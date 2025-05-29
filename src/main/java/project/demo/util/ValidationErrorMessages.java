@@ -42,6 +42,7 @@ public class ValidationErrorMessages {
                     errorMessages.put(messageCode, description);
                 }
             }
+            
         } catch (IOException e) {
             throw new RuntimeException("Error loading validation error messages", e);
         }

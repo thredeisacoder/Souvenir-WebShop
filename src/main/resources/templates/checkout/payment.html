@@ -595,6 +595,16 @@
     </main>
 
     <th:block layout:fragment="script">
+        <!-- Inject error messages from server to JavaScript -->
+        <script th:inline="javascript">
+            // Error messages loaded from server-side
+            const ERROR_MESSAGES = {
+                INVALID_CARD_NUMBER: /*[[${@validationErrorMessages.getMessage('INVALID_CARD_NUMBER')}]]*/ 'Số thẻ không hợp lệ',
+                INVALID_EXPIRATION_DATE: /*[[${@validationErrorMessages.getMessage('INVALID_EXPIRATION_DATE')}]]*/ 'Ngày hết hạn không hợp lệ (định dạng MM/YY)',
+                INVALID_SECURITY_CODE: /*[[${@validationErrorMessages.getMessage('INVALID_SECURITY_CODE')}]]*/ 'Mã bảo mật không hợp lệ (3-4 chữ số)'
+            };
+        </script>
+        
         <script>
             // Luhn algorithm to validate credit card numbers
             function isValidCreditCard(cardNumber) {
@@ -770,19 +780,19 @@
                             // Validate card number
                             if (!isValidCreditCard(cardNumber)) {
                                 isValid = false;
-                                errors.push('Số thẻ không hợp lệ. Vui lòng nhập đúng số thẻ 16 chữ số.');
+                                errors.push(ERROR_MESSAGES.INVALID_CARD_NUMBER);
                             }
                             
                             // Validate expiry date
                             if (!isValidExpiryDate(expiryDate)) {
                                 isValid = false;
-                                errors.push('Ngày hết hạn không hợp lệ hoặc đã quá hạn. Vui lòng nhập ngày hết hạn hợp lệ (MM/YY).');
+                                errors.push(ERROR_MESSAGES.INVALID_EXPIRATION_DATE);
                             }
                             
                             // Validate CVC
                             if (!isValidCVC(cvc)) {
                                 isValid = false;
-                                errors.push('Mã bảo mật (CVC) không hợp lệ. Vui lòng nhập 3 chữ số.');
+                                errors.push(ERROR_MESSAGES.INVALID_SECURITY_CODE);
                             }
                             
                             // If any validation fails, show error and prevent form submission
