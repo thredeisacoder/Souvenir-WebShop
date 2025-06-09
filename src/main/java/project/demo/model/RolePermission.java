@@ -10,7 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "RolePermission", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "RolePermission", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class RolePermission {
 
     @Id

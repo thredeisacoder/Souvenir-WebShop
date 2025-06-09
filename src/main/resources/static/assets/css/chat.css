@@ -1,0 +1,302 @@
+.chat-widget {
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 400px;
+  height: 600px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.chat-widget.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chat-header {
+  padding: 20px;
+  background: #0e7c7b;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1em;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+.message {
+  margin-bottom: 15px;
+  padding: 12px 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.message.customer {
+  background: #e3f2fd;
+  color: #1976d2;
+  margin-left: auto;
+  border-bottom-right-radius: 5px;
+}
+
+.message.agent {
+  background: #0e7c7b;
+  color: white;
+  margin-right: auto;
+  border-bottom-left-radius: 5px;
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+.message.error {
+  background: #ffebee;
+  color: #c62828;
+  margin: 10px auto;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.chat-input {
+  padding: 20px;
+  background: white;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  outline: none;
+  font-size: 1em;
+}
+
+.chat-input input:focus {
+  border-color: #0e7c7b;
+  box-shadow: 0 0 0 2px rgba(14, 124, 123, 0.2);
+}
+
+.chat-input button {
+  padding: 12px 25px;
+  background: #0e7c7b;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.chat-input button:hover {
+  background: #0a5f5e;
+  transform: translateY(-2px);
+}
+
+.chat-input button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.chat-toggle {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background: #0e7c7b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.chat-toggle:hover {
+  transform: scale(1.1);
+  background: #0a5f5e;
+}
+
+.chat-toggle i {
+  color: white;
+  font-size: 24px;
+}
+
+.hidden {
+  display: none;
+  transform: scale(0);
+  opacity: 0;
+}
+
+.typing-indicator {
+  display: none;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 15px;
+  margin-bottom: 15px;
+  color: #666;
+  font-style: italic;
+  align-items: center;
+}
+
+.typing-indicator.visible {
+  display: flex;
+}
+
+.typing-dots {
+  display: flex;
+  margin-left: 10px;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: #666;
+  border-radius: 50%;
+  margin: 0 3px;
+  animation: typingAnimation 1s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+@keyframes typingAnimation {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Enhanced styles for formatted AI messages */
+.message.agent .chat-list {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.message.agent .chat-list li {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+.message.agent ul.chat-list {
+  list-style-type: disc;
+}
+
+.message.agent ol.chat-list {
+  list-style-type: decimal;
+}
+
+.message.agent strong {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.message.agent em {
+  font-style: italic;
+  color: #e8f5f5;
+}
+
+.message.agent .price-highlight {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.message.agent .product-highlight {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+  color: #f0f8f8;
+}
+
+.message.agent .question-highlight {
+  font-weight: 600;
+  color: #e8f5f5;
+}
+
+/* Better spacing for paragraphs in AI messages */
+.message.agent p {
+  margin: 8px 0;
+}
+
+.message.agent p:first-child {
+  margin-top: 0;
+}
+
+.message.agent p:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+  .chat-widget {
+    width: 90vw;
+    height: 70vh;
+    right: 5vw;
+    bottom: 80px;
+  }
+
+  .message {
+    max-width: 90%;
+    font-size: 14px;
+  }
+
+  .message.agent .chat-list {
+    padding-left: 16px;
+  }
+}

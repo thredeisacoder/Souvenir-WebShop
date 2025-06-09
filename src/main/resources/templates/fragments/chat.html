@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="chat">
+      <!-- Hidden input to store session ID -->
+      <input
+        type="hidden"
+        id="customerSessionId"
+        th:value="${session.customer != null ? session.customer.customerId : ''}"
+      />
+
+      <!-- Chat Toggle Button -->
+      <div class="chat-toggle" id="chatToggle">
+        <i class="fas fa-comments"></i>
+      </div>
+
+      <!-- Chat Widget -->
+      <div class="chat-widget hidden" id="chatWidget">
+        <div class="chat-header">Chat with Sales Agent</div>
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be added here dynamically -->
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+          Agent is typing
+          <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+        <div class="chat-input">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Type your message..."
+          />
+          <button id="sendButton">Send</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

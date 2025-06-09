@@ -10,7 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "PaymentMethod", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "PaymentMethod", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class PaymentMethod {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

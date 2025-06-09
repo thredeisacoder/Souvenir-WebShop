@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "Employee", schema = "dbo", catalog = "SouvenirShopDB", uniqueConstraints = {
+@Table(name = "Employee", schema = "dbo", catalog = "SouvenirShopDBUser", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "username" })
 })
 public class Employee {

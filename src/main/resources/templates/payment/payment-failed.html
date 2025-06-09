@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+      layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Thanh toán thất bại</title>
+    <style>
+        .payment-failed-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .failed-icon {
+            font-size: 5rem;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        
+        .failed-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #721c24;
+        }
+        
+        .failed-message {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .error-details {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+            text-align: left;
+        }
+        
+        .error-title {
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        
+        .error-content {
+            color: #495057;
+        }
+        
+        .action-buttons {
+            margin-top: 30px;
+        }
+        
+        .action-buttons .btn {
+            margin: 0 10px 10px 10px;
+            min-width: 150px;
+        }
+        
+        .btn-retry {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-retry:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            color: white;
+        }
+        
+        .support-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            color: #0c5460;
+        }
+        
+        .support-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .support-contact {
+            margin: 5px 0;
+        }
+        
+        .support-contact i {
+            margin-right: 8px;
+            width: 16px;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container">
+            <div class="payment-failed-container">
+                <div class="failed-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                
+                <h1 class="failed-title">Thanh toán thất bại!</h1>
+                
+                <div class="failed-message">
+                    <p>Rất tiếc, giao dịch thanh toán của bạn không thể hoàn tất. Vui lòng kiểm tra lại thông tin và thử lại.</p>
+                </div>
+                
+                <div class="error-details" th:if="${errorMessage != null}">
+                    <div class="error-title">Chi tiết lỗi:</div>
+                    <div class="error-content" th:text="${errorMessage}">Lỗi không xác định</div>
+                </div>
+                
+                <div class="error-details" th:unless="${errorMessage != null}">
+                    <div class="error-title">Các nguyên nhân có thể:</div>
+                    <div class="error-content">
+                        <ul style="margin: 0; padding-left: 20px; text-align: left;">
+                            <li>Thông tin thẻ không chính xác</li>
+                            <li>Số dư tài khoản không đủ</li>
+                            <li>Thẻ đã hết hạn hoặc bị khóa</li>
+                            <li>Kết nối mạng không ổn định</li>
+                            <li>Đã quá thời gian thanh toán</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a th:href="@{/checkout/payment}" class="btn btn-retry">
+                        <i class="fas fa-redo me-2"></i>Thử thanh toán lại
+                    </a>
+                    <a th:href="@{/cart/view}" class="btn btn-outline-secondary">
+                        <i class="fas fa-shopping-cart me-2"></i>Quay về giỏ hàng
+                    </a>
+                    <a th:href="@{/products}" class="btn btn-outline-primary">
+                        <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                    </a>
+                </div>
+                
+                <div class="support-info">
+                    <div class="support-title">
+                        <i class="fas fa-headset me-2"></i>Cần hỗ trợ?
+                    </div>
+                    <div class="support-contact">
+                        <i class="fas fa-phone"></i>Hotline: 1900 1234
+                    </div>
+                    <div class="support-contact">
+                        <i class="fas fa-envelope"></i>Email: support@souvenir.vn
+                    </div>
+                    <div class="support-contact">
+                        <i class="fas fa-clock"></i>Thời gian hỗ trợ: 8:00 - 22:00 hàng ngày
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html> 

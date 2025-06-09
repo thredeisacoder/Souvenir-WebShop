@@ -26,10 +26,10 @@ public class CustomerServiceImpl implements ICustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
-    
+
     @Autowired
     private CustomerDirectRepository customerDirectRepository;
-    
+
     private final PasswordEncoder passwordEncoder;
 
     // Regular expressions for validation
@@ -66,7 +66,7 @@ public class CustomerServiceImpl implements ICustomerService {
     public Customer save(Customer customer) {
         return customerRepository.save(customer);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -76,11 +76,12 @@ public class CustomerServiceImpl implements ICustomerService {
         try {
             // Validate customer
             validateCustomer(customer);
-
+            // Thiết lập ngày tham gia TRƯỚC các bước kiểm tra khác
+            customer.setJoinDate(java.time.LocalDate.now());
             // Check for duplicate email
             boolean emailExists = customerRepository.existsByEmail(customer.getEmail());
             System.out.println("DEBUG: Email exists check: " + emailExists + " for email: " + customer.getEmail());
-            
+
             if (emailExists) {
                 System.out.println("DEBUG: Duplicate email detected: " + customer.getEmail());
                 throw CustomerException.duplicateEmail(customer.getEmail());
@@ -88,8 +89,9 @@ public class CustomerServiceImpl implements ICustomerService {
 
             // Check for duplicate phone number
             boolean phoneExists = customerRepository.existsByPhoneNumber(customer.getPhoneNumber());
-            System.out.println("DEBUG: Phone exists check: " + phoneExists + " for phone: " + customer.getPhoneNumber());
-            
+            System.out
+                    .println("DEBUG: Phone exists check: " + phoneExists + " for phone: " + customer.getPhoneNumber());
+
             if (phoneExists) {
                 System.out.println("DEBUG: Duplicate phone number detected: " + customer.getPhoneNumber());
                 throw CustomerException.duplicatePhoneNumber(customer.getPhoneNumber());
@@ -109,16 +111,16 @@ public class CustomerServiceImpl implements ICustomerService {
 
             // Set default status
             customer.setStatus(CustomerStatus.ACTIVE.getValue());
-            
+
             // Manually set database column values
             System.out.println("DEBUG: Preparing customer fields for database insertion");
             System.out.println("full_name: " + customer.getFullName());
             System.out.println("email: " + customer.getEmail());
             System.out.println("phone_number: " + customer.getPhoneNumber());
             System.out.println("status: " + customer.getStatus());
-            
+
             Customer savedCustomer = null;
-            
+
             try {
                 System.out.println("DEBUG: Attempting to save customer to database using JPA");
                 savedCustomer = customerRepository.save(customer);
@@ -126,7 +128,7 @@ public class CustomerServiceImpl implements ICustomerService {
             } catch (Exception e) {
                 System.err.println("DEBUG: Error saving customer using JPA: " + e.getMessage());
                 e.printStackTrace();
-                
+
                 // Try alternative method using direct SQL
                 System.out.println("DEBUG: Attempting to save customer using direct SQL");
                 Integer customerId = customerDirectRepository.insertCustomerDirectly(customer);
@@ -138,7 +140,7 @@ public class CustomerServiceImpl implements ICustomerService {
                     throw new RuntimeException("Failed to save customer using both JPA and direct SQL");
                 }
             }
-            
+
             return savedCustomer;
         } catch (Exception e) {
             System.err.println("DEBUG: Unexpected error in register method: " + e.getMessage());
@@ -158,8 +160,9 @@ public class CustomerServiceImpl implements ICustomerService {
             throw CustomerException.missingRequiredField("Customer ID");
         }
 
-        Customer existingCustomer = findById(customer.getCustomerId()).orElseThrow(() -> new ResourceNotFoundException("CUSTOMER_NOT_FOUND",
-                "Customer not found with ID: " + customer.getCustomerId()));
+        Customer existingCustomer = findById(customer.getCustomerId())
+                .orElseThrow(() -> new ResourceNotFoundException("CUSTOMER_NOT_FOUND",
+                        "Customer not found with ID: " + customer.getCustomerId()));
 
         // Validate customer
         validateCustomerForUpdate(customer, existingCustomer);
@@ -179,47 +182,70 @@ public class CustomerServiceImpl implements ICustomerService {
             // Find customer by email
             System.out.println("DEBUG-AUTH-FLOW - ===== Bắt đầu quá trình xác thực =====");
             System.out.println("DEBUG-AUTH-FLOW - Email đang xác thực: '" + email + "'");
-            Optional<Customer> customerOpt = customerRepository.findByEmail(email);
-            if (!customerOpt.isPresent()) {
-                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Không tìm thấy tài khoản với email: " + email);
-                return false;
+            
+            if (email == null || email.trim().isEmpty()) {
+                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Email trống hoặc null");
+                throw new CustomerException("Email không được để trống", "EMAIL_NOT_FOUND");
             }
             
+            if (password == null || password.trim().isEmpty()) {
+                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Mật khẩu trống hoặc null");
+                throw new CustomerException("Mật khẩu không được để trống", "INCORRECT_PASSWORD");
+            }
+            
+            Optional<Customer> customerOpt = customerRepository.findByEmail(email.trim().toLowerCase());
+            if (!customerOpt.isPresent()) {
+                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Không tìm thấy tài khoản với email: " + email);
+                throw new CustomerException("Không tìm thấy tài khoản với email này", "EMAIL_NOT_FOUND");
+            }
+
             Customer customer = customerOpt.get();
-            System.out.println("DEBUG-AUTH-FLOW - Đã tìm thấy tài khoản: ID=" + customer.getCustomerId() + ", Status=" + customer.getStatus());
+            System.out.println("DEBUG-AUTH-FLOW - Đã tìm thấy tài khoản: ID=" + customer.getCustomerId() + ", Status="
+                    + customer.getStatus());
 
             // Check if customer is active
             if (!CustomerStatus.ACTIVE.getValue().equals(customer.getStatus())) {
-                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Tài khoản không hoạt động. Status hiện tại: " + customer.getStatus());
-                return false;
+                System.out.println(
+                        "DEBUG-AUTH-FLOW - [LỖI] Tài khoản không hoạt động. Status hiện tại: " + customer.getStatus());
+                throw new CustomerException("Tài khoản của bạn đã bị vô hiệu hóa", "INACTIVE_CUSTOMER");
             }
 
             // Verify password using PasswordEncoder
             System.out.println("DEBUG-AUTH-FLOW - Kiểm tra mật khẩu...");
             System.out.println("DEBUG-AUTH-FLOW - Độ dài mật khẩu nhập vào: " + password.length());
-            System.out.println("DEBUG-AUTH-FLOW - Độ dài mật khẩu đã mã hóa: " + customer.getPassword().length());
-            System.out.println("DEBUG-AUTH-FLOW - Mật khẩu nhập vào: '" + password + "'");
-            System.out.println("DEBUG-AUTH-FLOW - Mật khẩu đã mã hóa: '" + customer.getPassword() + "'");
+            System.out.println("DEBUG-AUTH-FLOW - Mật khẩu đã mã hóa: " + (customer.getPassword() != null ? "Có" : "Null"));
 
-            boolean passwordMatches = passwordEncoder.matches(password, customer.getPassword());
-            System.out.println("DEBUG-AUTH-FLOW - Kết quả so sánh mật khẩu: " + (passwordMatches ? "KHỚP" : "KHÔNG KHỚP"));
+            // Additional null check for stored password
+            if (customer.getPassword() == null || customer.getPassword().trim().isEmpty()) {
+                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Mật khẩu trong database bị null hoặc trống");
+                throw new CustomerException("Lỗi dữ liệu tài khoản. Vui lòng liên hệ hỗ trợ", "ACCOUNT_DATA_ERROR");
+            }
+
+            boolean passwordMatches = false;
+            try {
+                passwordMatches = passwordEncoder.matches(password, customer.getPassword());
+                System.out.println(
+                        "DEBUG-AUTH-FLOW - Kết quả so sánh mật khẩu: " + (passwordMatches ? "KHỚP" : "KHÔNG KHỚP"));
+            } catch (Exception passwordError) {
+                System.out.println("DEBUG-AUTH-FLOW - [LỖI] Lỗi khi so sánh mật khẩu: " + passwordError.getMessage());
+                throw new CustomerException("Lỗi xác thực mật khẩu", "PASSWORD_VERIFICATION_ERROR");
+            }
 
             if (!passwordMatches) {
                 System.out.println("DEBUG-AUTH-FLOW - [LỖI] Mật khẩu không khớp");
-                
-                // Kiểm tra xem passwordEncoder đang hoạt động chính xác không
-                String testEncode = passwordEncoder.encode(password);
-                System.out.println("DEBUG-AUTH-FLOW - Mã hóa thử mật khẩu nhập vào: '" + testEncode + "'");
-                System.out.println("DEBUG-AUTH-FLOW - Độ dài mã hóa thử: " + testEncode.length());
-                return false;
+                throw new CustomerException("Mật khẩu không chính xác", "INCORRECT_PASSWORD");
             }
 
             System.out.println("DEBUG-AUTH-FLOW - Xác thực thành công!");
             return true;
+        } catch (CustomerException e) {
+            // Re-throw CustomerException as-is
+            throw e;
         } catch (Exception e) {
-            System.err.println("DEBUG-AUTH-FLOW - [LỖI] Lỗi không mong đợi trong quá trình xác thực: " + e.getMessage());
+            System.err
+                    .println("DEBUG-AUTH-FLOW - [LỖI] Lỗi không mong đợi trong quá trình xác thực: " + e.getMessage());
             e.printStackTrace();
-            return false;
+            throw new CustomerException("Lỗi hệ thống khi xác thực", "AUTHENTICATION_SYSTEM_ERROR");
         }
     }
 
@@ -347,6 +373,37 @@ public class CustomerServiceImpl implements ICustomerService {
         if (!PHONE_PATTERN.matcher(customer.getPhoneNumber()).matches()) {
             throw CustomerException.invalidPhoneNumberFormat(customer.getPhoneNumber());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getOriginalPassword(Integer customerId) {
+        // Note: This is for demonstration only. In production, you should:
+        // 1. Generate a secure reset token instead of returning the actual password
+        // 2. Store the token temporarily with expiration
+        // 3. Send the reset link, not the actual password
+
+        Optional<Customer> customerOpt = findById(customerId);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+
+            // For this demo, we'll generate a temporary password
+            // In a real system, you should generate a secure reset token instead
+            String temporaryPassword = "TempPass" + customerId + "123";
+
+            // Update customer with the new temporary password
+            String encodedTempPassword = passwordEncoder.encode(temporaryPassword);
+            customer.setPassword(encodedTempPassword);
+            customerRepository.save(customer);
+
+            System.out.println(
+                    "DEBUG - Generated temporary password: " + temporaryPassword + " for customer: " + customerId);
+
+            return temporaryPassword;
+        }
+        throw new RuntimeException("Customer not found");
     }
 
     /**

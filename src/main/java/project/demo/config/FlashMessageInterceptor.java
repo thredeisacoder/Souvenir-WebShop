@@ -91,35 +91,42 @@ public class FlashMessageInterceptor implements HandlerInterceptor {
             return;
         }
         
-        // Get the flash attributes map from the session
-        @SuppressWarnings("unchecked")
-        Map<String, Object> flashAttributes = 
-                (Map<String, Object>) session.getAttribute("org.springframework.web.servlet.support.SessionFlashMapManager.FLASH_MAPS");
-        
-        if (flashAttributes != null && !flashAttributes.isEmpty()) {
-            // Process the first flash map (most recent)
-            @SuppressWarnings("unchecked")
-            Map<String, Object> flashMap = ((java.util.List<Map<String, Object>>) flashAttributes).get(0);
+        try {
+            // Get the flash attributes from the session
+            Object flashAttributesObj = session.getAttribute("org.springframework.web.servlet.support.SessionFlashMapManager.FLASH_MAPS");
             
-            // Only process if we don't already have a messageCode
-            if (!flashMap.containsKey("messageCode")) {
-                Object successMessage = flashMap.get("successMessage");
-                Object errorMessage = flashMap.get("errorMessage");
+            if (flashAttributesObj != null && flashAttributesObj instanceof java.util.List) {
+                @SuppressWarnings("unchecked")
+                java.util.List<Map<String, Object>> flashMaps = (java.util.List<Map<String, Object>>) flashAttributesObj;
                 
-                if (successMessage != null) {
-                    String message = successMessage.toString();
-                    String messageCode = findMessageCode(message, true);
-                    if (messageCode != null) {
-                        flashMap.put("messageCode", messageCode);
-                    }
-                } else if (errorMessage != null) {
-                    String message = errorMessage.toString();
-                    String messageCode = findMessageCode(message, false);
-                    if (messageCode != null) {
-                        flashMap.put("messageCode", messageCode);
+                if (!flashMaps.isEmpty()) {
+                    // Process the first flash map (most recent)
+                    Map<String, Object> flashMap = flashMaps.get(0);
+                    
+                    // Only process if we don't already have a messageCode
+                    if (!flashMap.containsKey("messageCode")) {
+                        Object successMessage = flashMap.get("successMessage");
+                        Object errorMessage = flashMap.get("errorMessage");
+                        
+                        if (successMessage != null) {
+                            String message = successMessage.toString();
+                            String messageCode = findMessageCode(message, true);
+                            if (messageCode != null) {
+                                flashMap.put("messageCode", messageCode);
+                            }
+                        } else if (errorMessage != null) {
+                            String message = errorMessage.toString();
+                            String messageCode = findMessageCode(message, false);
+                            if (messageCode != null) {
+                                flashMap.put("messageCode", messageCode);
+                            }
+                        }
                     }
                 }
             }
+        } catch (ClassCastException e) {
+            // Ignore casting errors and continue
+            // This can happen when flash attributes are in an unexpected format
         }
     }
     

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" 
+      layout:decorate="~{layouts/main-layout}">
+<head>
+    <title>Kết quả thanh toán VNPay</title>
+    <style>
+        .payment-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f8fff8;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #d4edda;
+        }
+        
+        .warning-message {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #fff3cd;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .failed-message {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f8d7da;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        
+        .warning-icon {
+            font-size: 64px;
+            color: #856404;
+            margin-bottom: 20px;
+        }
+        
+        .failed-icon {
+            font-size: 64px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        
+        .success-title, .warning-title, .failed-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .payment-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .payment-details-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .detail-value {
+            color: #212529;
+            font-weight: 500;
+        }
+        
+        .order-id {
+            background-color: #f8f9fa;
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 10px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .transaction-id {
+            background-color: #e7f3ff;
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin: 10px 0;
+            border: 1px solid #b3d9ff;
+            color: #0056b3;
+        }
+        
+        .btn-group {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-primary:hover {
+            background-color: #085b5a;
+            border-color: #085b5a;
+        }
+        
+        .btn-outline-primary {
+            color: #0e7c7b;
+            border-color: #0e7c7b;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #0e7c7b;
+            border-color: #0e7c7b;
+            color: white;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .page-header p {
+            color: #666;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <main layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header">
+                        <h1>Kết quả thanh toán</h1>
+                        <p>Thông tin chi tiết về giao dịch VNPay</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="payment-container">
+                
+                <!-- Payment Success -->
+                <div th:if="${paymentStatus == 'success'}">
+                    <div class="success-message">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2 class="success-title">Thanh toán thành công!</h2>
+                        <p>Cảm ơn bạn đã sử dụng dịch vụ thanh toán VNPay. Đơn hàng của bạn đã được xác nhận và đang được xử lý.</p>
+                        
+                        <div class="order-id" th:text="${'Mã đơn hàng: #' + orderId}">Mã đơn hàng: #12345</div>
+                        <div class="transaction-id" th:text="${'Mã giao dịch: ' + transactionId}">Mã giao dịch: VNP123456</div>
+                        
+                        <p>Chúng tôi đã gửi email xác nhận đến địa chỉ email của bạn. Bạn có thể theo dõi đơn hàng trong trang Tài khoản.</p>
+                    </div>
+                    
+                    <div class="payment-details">
+                        <h3 class="payment-details-title">Chi tiết giao dịch</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Mã đơn hàng</span>
+                            <span class="detail-value" th:text="${'#' + orderId}">#12345</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Mã giao dịch VNPay</span>
+                            <span class="detail-value" th:text="${transactionId}">VNP123456789</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Số tiền thanh toán</span>
+                            <span class="detail-value" th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT') + ' VND'}">1.000.000 VND</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Thời gian giao dịch</span>
+                            <span class="detail-value" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}">01/01/2024 12:00:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Phương thức thanh toán</span>
+                            <span class="detail-value">VNPay</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trạng thái</span>
+                            <span class="detail-value text-success"><i class="fas fa-check-circle me-2"></i>Thành công</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a th:href="@{/account/orders}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>Xem đơn hàng của tôi
+                        </a>
+                        <a th:href="@{/products}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Payment Success but Order Failed -->
+                <div th:if="${paymentStatus == 'payment_success_order_failed'}">
+                    <div class="warning-message">
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2 class="warning-title">Thanh toán thành công!</h2>
+                        <p>Thanh toán VNPay của bạn đã được xử lý thành công, nhưng có lỗi kỹ thuật khi tạo đơn hàng.</p>
+                        
+                        <div class="transaction-id" th:text="${'Mã giao dịch: ' + transactionId}">Mã giao dịch: VNP123456</div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <strong><i class="fas fa-info-circle me-2"></i>Thông báo quan trọng:</strong><br>
+                            Thanh toán của bạn đã thành công. Chúng tôi sẽ xử lý đơn hàng và liên hệ với bạn trong vòng 24 giờ.
+                            Vui lòng lưu lại mã giao dịch để tiện liên hệ hỗ trợ.
+                        </div>
+                    </div>
+                    
+                    <div class="payment-details">
+                        <h3 class="payment-details-title">Chi tiết giao dịch</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Mã giao dịch VNPay</span>
+                            <span class="detail-value" th:text="${transactionId}">VNP123456789</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Số tiền đã thanh toán</span>
+                            <span class="detail-value" th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT') + ' VND'}">1.000.000 VND</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Thời gian giao dịch</span>
+                            <span class="detail-value" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}">01/01/2024 12:00:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trạng thái thanh toán</span>
+                            <span class="detail-value text-success"><i class="fas fa-check-circle me-2"></i>Thành công</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trạng thái đơn hàng</span>
+                            <span class="detail-value text-warning"><i class="fas fa-clock me-2"></i>Đang xử lý</span>
+                        </div>
+                        <div class="detail-row" th:if="${vnpayReference}">
+                            <span class="detail-label">Tham chiếu VNPay</span>
+                            <span class="detail-value" th:text="${vnpayReference}">VNP123456789</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a th:href="@{/products}" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                        </a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#helpModal" class="btn btn-outline-primary">
+                            <i class="fas fa-headset me-2"></i>Liên hệ hỗ trợ
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Payment Failed -->
+                <div th:if="${paymentStatus == 'failed'}">
+                    <div class="failed-message">
+                        <div class="failed-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h2 class="failed-title">Thanh toán thất bại!</h2>
+                        <p>Giao dịch VNPay không thể hoàn tất. Vui lòng kiểm tra lại thông tin và thử lại.</p>
+                        
+                                                 <div th:if="${transactionId != null and transactionId != '0' and transactionId != ''}" class="transaction-id" th:text="${'Mã giao dịch: ' + transactionId}">Mã giao dịch: VNP123456</div>
+                        
+                        <div th:if="${errorDetails}" class="alert alert-danger mt-3">
+                            <strong><i class="fas fa-exclamation-triangle me-2"></i>Chi tiết lỗi:</strong><br>
+                            <span th:text="${errorDetails}">Chữ ký thanh toán không hợp lệ. Vui lòng thử lại.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-details">
+                        <h3 class="payment-details-title">Chi tiết giao dịch</h3>
+                        <div class="detail-row" th:if="${vnpayReference}">
+                            <span class="detail-label">Tham chiếu VNPay</span>
+                            <span class="detail-value" th:text="${vnpayReference}">VNP Reference</span>
+                        </div>
+                                                 <div class="detail-row" th:if="${transactionId != null and transactionId != '0' and transactionId != ''}">
+                             <span class="detail-label">Mã giao dịch VNPay</span>
+                             <span class="detail-value" th:text="${transactionId}">VNP123456789</span>
+                         </div>
+                        <div class="detail-row" th:if="${amount}">
+                            <span class="detail-label">Số tiền</span>
+                            <span class="detail-value" th:text="${#numbers.formatDecimal(amount, 0, 'COMMA', 0, 'POINT') + ' VND'}">1.000.000 VND</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Thời gian</span>
+                            <span class="detail-value" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}">01/01/2024 12:00:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Phương thức thanh toán</span>
+                            <span class="detail-value">VNPay</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Trạng thái</span>
+                            <span class="detail-value text-danger"><i class="fas fa-times-circle me-2"></i>Thất bại</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a th:href="@{/checkout/payment}" class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>Thử thanh toán lại
+                        </a>
+                        <a th:href="@{/cart/view}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Quay về giỏ hàng
+                        </a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#helpModal" class="btn btn-outline-secondary">
+                            <i class="fas fa-question-circle me-2"></i>Cần hỗ trợ?
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Help Modal -->
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="helpModalLabel">
+                            <i class="fas fa-headset me-2"></i>Cần hỗ trợ?
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-phone-alt fa-2x text-primary"></i>
+                        </div>
+                        <div class="contact-info">
+                            <div class="mb-3">
+                                <strong><i class="fas fa-phone me-2 text-primary"></i>Hotline:</strong>
+                                <span>1900 1234</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong><i class="fas fa-envelope me-2 text-primary"></i>Email:</strong>
+                                <span>support@souvenir.vn</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong><i class="fas fa-clock me-2 text-primary"></i>Giờ hỗ trợ:</strong>
+                                <span>8:00 - 22:00 hàng ngày</span>
+                            </div>
+                            <hr>
+                            <p class="text-muted small mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Vui lòng chuẩn bị sẵn mã giao dịch khi liên hệ để được hỗ trợ nhanh chóng.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đã hiểu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html> 

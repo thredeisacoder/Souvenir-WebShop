@@ -158,4 +158,37 @@ public class CustomerException extends BusinessLogicException {
                 "INCORRECT_OLD_PASSWORD",
                 "The old password is incorrect");
     }
+
+    /**
+     * Creates a new exception for account data errors.
+     *
+     * @return a new CustomerException
+     */
+    public static CustomerException accountDataError() {
+        return new CustomerException(
+                "ACCOUNT_DATA_ERROR",
+                "Account data is corrupted. Please contact support");
+    }
+
+    /**
+     * Creates a new exception for password verification errors.
+     *
+     * @return a new CustomerException
+     */
+    public static CustomerException passwordVerificationError() {
+        return new CustomerException(
+                "PASSWORD_VERIFICATION_ERROR",
+                "Error occurred during password verification");
+    }
+
+    /**
+     * Creates a new exception for authentication system errors.
+     *
+     * @return a new CustomerException
+     */
+    public static CustomerException authenticationSystemError() {
+        return new CustomerException(
+                "AUTHENTICATION_SYSTEM_ERROR",
+                "System error during authentication");
+    }
 }

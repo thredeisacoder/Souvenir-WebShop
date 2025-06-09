@@ -42,12 +42,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                            (rememberMe ? " với tùy chọn ghi nhớ đăng nhập" : ""));
         
         try {
-            // Authenticate using customer service
-            boolean authenticated = customerService.authenticate(email, password);
-            if (!authenticated) {
-                System.out.println("DEBUG-AUTH-FLOW - Xác thực thất bại.");
-                throw new CustomerException("Mật khẩu không chính xác", "INCORRECT_PASSWORD");
-            }
+            // Authenticate using customer service (now throws exceptions instead of returning boolean)
+            customerService.authenticate(email, password);
             
             System.out.println("DEBUG-AUTH-FLOW - Xác thực thành công, đang lấy thông tin khách hàng...");
             
@@ -60,42 +56,35 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             
             Customer customer = customerOpt.get();
             System.out.println("DEBUG-AUTH-FLOW - Đã lấy thông tin khách hàng: ID=" + customer.getCustomerId());
+            
+            // Check if customer is active
+            if (!project.demo.enums.CustomerStatus.ACTIVE.getValue().equals(customer.getStatus())) {
+                System.out.println("DEBUG-AUTH-FLOW - Tài khoản không hoạt động: " + customer.getStatus());
+                throw new CustomerException("Tài khoản của bạn đã bị vô hiệu hóa", "INACTIVE_CUSTOMER");
+            }
 
             try {
-                // Get current session
+                // Get current request and response
                 ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-                if (attr == null) {
-                    System.out.println("DEBUG-AUTH-FLOW - LỖI: Không thể lấy request attributes");
-                    throw new CustomerException("Lỗi xử lý phiên đăng nhập", "SESSION_ERROR");
-                }
-                
-                HttpServletRequest request = attr.getRequest();
-                HttpServletResponse response = attr.getResponse();
-                HttpSession session = request.getSession();
-                
-                System.out.println("DEBUG-AUTH-FLOW - Đã lấy phiên làm việc (session ID): " + session.getId());
+                if (attr != null) {
+                    HttpServletRequest request = attr.getRequest();
+                    HttpServletResponse response = attr.getResponse();
+                    HttpSession session = request.getSession(true); // Ensure session exists
+                    
+                    System.out.println("DEBUG-AUTH-FLOW - Thiết lập session...");
+                    
+                    // Set session attributes
+                    session.setAttribute("customer", customer);
+                    session.setAttribute("customerId", customer.getCustomerId());
+                    session.setAttribute("customerName", customer.getFullName());
+                    session.setAttribute("isLoggedIn", true);
+                    session.setMaxInactiveInterval(30 * 60); // 30 minutes
+                    
+                    System.out.println("DEBUG-AUTH-FLOW - Session đã được thiết lập với ID: " + session.getId());
+                    System.out.println("DEBUG-AUTH-FLOW - Session attributes: customer=" + session.getAttribute("customer") + 
+                                     ", isLoggedIn=" + session.getAttribute("isLoggedIn"));
 
-                // Store customer in session
-                session.setAttribute("customer", customer);
-                session.setAttribute("customerId", customer.getCustomerId());
-                session.setAttribute("customerName", customer.getFullName());
-                session.setAttribute("isLoggedIn", true);
-                
-                // Set session timeout based on rememberMe option
-                if (rememberMe) {
-                    // Set session to never expire when using remember me
-                    session.setMaxInactiveInterval(-1);
-                    System.out.println("DEBUG-AUTH-FLOW - Đã thiết lập phiên làm việc không hết hạn (remember me)");
-                } else {
-                    // Default session timeout (30 minutes)
-                    session.setMaxInactiveInterval(1800);
-                    System.out.println("DEBUG-AUTH-FLOW - Đã thiết lập phiên làm việc với thời gian mặc định (30 phút)");
-                }
-                
-                System.out.println("DEBUG-AUTH-FLOW - Đã lưu thông tin khách hàng vào phiên");
-
-                // Set Spring Security context
-                try {
+                    // Set up Spring Security context
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         customer.getEmail(),
                         null,
@@ -112,21 +101,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         setupRememberMe(request, response, email);
                     }
                     
-                    // Kiểm tra xem Spring Security Context có được thiết lập đúng không
+                    // Verify Spring Security Context
                     if (SecurityContextHolder.getContext().getAuthentication() != null &&
                         SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
                         System.out.println("DEBUG-AUTH-FLOW - Xác nhận Spring Security Context đã được thiết lập thành công");
                     } else {
                         System.out.println("DEBUG-AUTH-FLOW - CẢNH BÁO: Spring Security Context không được thiết lập đúng");
                     }
-                } catch (Exception e) {
-                    System.out.println("DEBUG-AUTH-FLOW - LỖI khi thiết lập Spring Security context: " + e.getMessage());
-                    e.printStackTrace();
+                    
+                    System.out.println("DEBUG-AUTH-FLOW - Quá trình đăng nhập hoàn tất thành công");
+                    return customer;
+                } else {
+                    System.out.println("DEBUG-AUTH-FLOW - CẢNH BÁO: Không thể lấy RequestAttributes");
+                    throw new CustomerException("Lỗi hệ thống: Không thể thiết lập phiên đăng nhập", "SESSION_ERROR");
                 }
-                
-                System.out.println("DEBUG-AUTH-FLOW - Quá trình đăng nhập hoàn tất thành công");
-                return customer;
-                
             } catch (Exception e) {
                 System.out.println("DEBUG-AUTH-FLOW - LỖI trong quá trình xử lý session: " + e.getMessage());
                 e.printStackTrace();

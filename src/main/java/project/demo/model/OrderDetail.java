@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
 @Entity
-@Table(name = "OrderDetail", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "OrderDetail", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class OrderDetail {
 
     @Id

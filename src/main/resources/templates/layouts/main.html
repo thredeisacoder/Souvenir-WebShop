@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+>
+  <head>
+    <!-- ... existing head content ... -->
+
+    <!-- Font Awesome for chat icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <!-- Chat Widget CSS -->
+    <link rel="stylesheet" th:href="@{/assets/css/chat.css}" />
+  </head>
+  <body>
+    <!-- ... existing body content ... -->
+
+    <!-- Chat Widget -->
+    <div th:replace="fragments/chat :: chat"></div>
+
+    <!-- ... existing scripts ... -->
+
+    <!-- Chat Widget JavaScript -->
+    <script th:src="@{/assets/js/chat.js}"></script>
+  </body>
+</html>

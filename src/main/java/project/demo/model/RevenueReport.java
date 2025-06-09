@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
  * Entity to store daily/monthly/yearly revenue data
  */
 @Entity
-@Table(name = "RevenueReport", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "RevenueReport", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class RevenueReport {
 
     @Id

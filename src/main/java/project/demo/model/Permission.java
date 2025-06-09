@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "Permission", schema = "dbo", catalog = "SouvenirShopDB", uniqueConstraints = {
+@Table(name = "Permission", schema = "dbo", catalog = "SouvenirShopDBUser", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "permission_name" })
 })
 public class Permission {

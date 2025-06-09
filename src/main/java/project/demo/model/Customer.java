@@ -1,5 +1,6 @@
 package project.demo.model;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -13,7 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "Customer", schema = "dbo", catalog = "SouvenirShopDB", uniqueConstraints = {
+@Table(name = "Customer", schema = "dbo", catalog = "SouvenirShopDBUser", uniqueConstraints = {
         @UniqueConstraint(columnNames = { "email" })
 })
 public class Customer {
@@ -37,6 +38,16 @@ public class Customer {
 
     @Column(name = "status", length = 20)
     private String status;
+    @Column(name = "join_date", nullable = false)
+    private LocalDate joinDate;
+
+    public LocalDate getJoinDate() {
+        return joinDate;
+    }
+
+    public void setJoinDate(LocalDate joinDate) {
+        this.joinDate = joinDate;
+    }
 
     @OneToMany(mappedBy = "customer")
     private List<Address> addresses;
@@ -50,7 +61,8 @@ public class Customer {
     @OneToOne(mappedBy = "customer")
     private Cart cart;
 
-    public Customer() {}
+    public Customer() {
+    }
 
     public Integer getCustomerId() {
         return customerId;

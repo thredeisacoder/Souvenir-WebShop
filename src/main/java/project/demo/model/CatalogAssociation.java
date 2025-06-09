@@ -10,7 +10,7 @@
 // @AllArgsConstructor
 // @Entity
 // @Table(name = "CatalogAssociation", schema = "dbo", catalog =
-// "SouvenirShopDB1")
+// "SouvenirShopDBUser")
 // public class CatalogAssociation {
 
 // @Id

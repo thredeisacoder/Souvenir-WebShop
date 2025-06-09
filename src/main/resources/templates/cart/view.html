@@ -129,30 +129,6 @@
                                 <span class="summary-value" th:text="${#numbers.formatDecimal(finalTotal, 0, 'COMMA', 0, 'POINT') + ' VND'}">270.000 VND</span>
                             </div>
                             
-                            <!-- Mã giảm giá (nếu có) -->
-                            <div class="mt-3">
-                                <form th:action="@{/cart/apply-coupon}" method="post" class="d-flex">
-                                    <input type="text" class="form-control" name="couponCode" placeholder="Mã giảm giá">
-                                    <button type="submit" class="btn btn-outline-secondary ms-2">Áp dụng</button>
-                                </form>
-                            </div>
-                            
-                            <!-- Mã giảm giá đã áp dụng -->
-                            <div class="mt-2" th:if="${appliedCoupon != null}">
-                                <div class="applied-coupon">
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge bg-success me-2">
-                                            <i class="fas fa-check me-1"></i>
-                                            <span th:text="${appliedCoupon.code}">SALE10</span>
-                                        </span>
-                                        <small class="text-muted" th:text="${appliedCoupon.description}">Giảm 10% tổng đơn hàng</small>
-                                        <a th:href="@{/cart/remove-coupon}" class="ms-auto text-danger btn-sm">
-                                            <i class="fas fa-times"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            
                             <!-- Thông báo về phí vận chuyển -->
                             <div class="shipping-notice mt-3">
                                 <small class="text-muted">

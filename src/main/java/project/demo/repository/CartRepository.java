@@ -59,6 +59,6 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
      */
     @Modifying
     @Transactional
-    @Query(value = "UPDATE SouvenirShopDB.dbo.Cart SET status = :status WHERE cart_id = :cartId", nativeQuery = true)
+    @Query(value = "UPDATE SouvenirShopDBUser.dbo.Cart SET status = :status WHERE cart_id = :cartId", nativeQuery = true)
     void updateCartStatus(@Param("cartId") Integer cartId, @Param("status") String status);
 }

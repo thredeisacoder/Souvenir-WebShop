@@ -504,7 +504,8 @@
                                 <div class="info-label mb-1">Phương thức thanh toán:</div>
                                 <div>
                                     <span th:if="${order.paymentMethod != null && order.paymentMethod.methodName != null}" th:text="${order.paymentMethod.methodName}">Phương thức thanh toán</span>
-                                    <span th:if="${order.paymentMethod != null && order.paymentMethod.provider != null}" th:text="${'(' + order.paymentMethod.provider + ')'}">Nhà cung cấp</span>
+                                    <span th:if="${order.paymentMethod != null && order.paymentMethod.provider != null && order.paymentMethod.provider != 'VNPay'}" th:text="${'(' + order.paymentMethod.provider + ')'}">Nhà cung cấp</span>
+                                    <span th:if="${order.paymentMethod != null && order.paymentMethod.provider == 'VNPay'}" class="badge bg-primary ms-2">VNPay</span>
                                     <span th:if="${order.paymentMethod == null}">Thanh toán khi nhận hàng (COD)</span>
                                 </div>
                             </div>

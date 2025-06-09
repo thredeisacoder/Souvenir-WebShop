@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
 @Entity
-@Table(name = "Payment", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "Payment", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

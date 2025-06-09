@@ -408,9 +408,9 @@
                                         <i class="far fa-credit-card payment-icon"></i>
                                         <span>Thẻ tín dụng/Ghi nợ</span>
                                     </div>
-                                    <div th:if="${paymentMethod.id == 'momo'}" class="d-flex align-items-center">
-                                        <i class="fas fa-wallet payment-icon"></i>
-                                        <span>Ví điện tử MoMo</span>
+                                    <div th:if="${paymentMethod.id == 'vnpay'}" class="d-flex align-items-center">
+                                        <i class="fas fa-credit-card payment-icon"></i>
+                                        <span>VNPay</span>
                                     </div>
                                 </div>
                             </div>
@@ -594,6 +594,74 @@
                         if (!termsAccepted.checked) {
                             event.preventDefault();
                             alert('Vui lòng đồng ý với điều khoản dịch vụ và chính sách bảo mật để tiếp tục.');
+                            return;
+                        }
+                        
+                        // Check if this is VNPay payment
+                        const paymentMethod = /*[[${paymentMethod != null ? paymentMethod.id : ''}]]*/ '';
+                        if (paymentMethod === 'vnpay') {
+                            event.preventDefault();
+                            
+                            // Show loading message
+                            const submitButton = document.getElementById('placeOrderButton');
+                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+                            submitButton.disabled = true;
+                            
+                            // Submit the form to create order first
+                            const formData = new FormData(confirmOrderForm);
+                            
+                            fetch(confirmOrderForm.action, {
+                                method: 'POST',
+                                body: formData
+                            })
+                            .then(response => response.text())
+                            .then(data => {
+                                // Parse the response to get order ID
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(data, 'text/html');
+                                const orderIdElement = doc.querySelector('[data-order-id]');
+                                
+                                if (orderIdElement) {
+                                    const orderId = orderIdElement.getAttribute('data-order-id');
+                                    const total = /*[[${total}]]*/ 0;
+                                    
+                                    // Create VNPay payment form
+                                    const vnpayForm = document.createElement('form');
+                                    vnpayForm.method = 'POST';
+                                    vnpayForm.action = '/vnpay/create-payment';
+                                    
+                                    const orderIdInput = document.createElement('input');
+                                    orderIdInput.type = 'hidden';
+                                    orderIdInput.name = 'orderId';
+                                    orderIdInput.value = orderId;
+                                    
+                                    const amountInput = document.createElement('input');
+                                    amountInput.type = 'hidden';
+                                    amountInput.name = 'amount';
+                                    amountInput.value = total;
+                                    
+                                    const orderInfoInput = document.createElement('input');
+                                    orderInfoInput.type = 'hidden';
+                                    orderInfoInput.name = 'orderInfo';
+                                    orderInfoInput.value = 'Thanh toan don hang ' + orderId;
+                                    
+                                    vnpayForm.appendChild(orderIdInput);
+                                    vnpayForm.appendChild(amountInput);
+                                    vnpayForm.appendChild(orderInfoInput);
+                                    
+                                    document.body.appendChild(vnpayForm);
+                                    vnpayForm.submit();
+                                } else {
+                                    // If no order ID found, redirect to the page directly
+                                    window.location.href = data;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                submitButton.innerHTML = 'Đặt hàng';
+                                submitButton.disabled = false;
+                                alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                            });
                         }
                     });
                 }

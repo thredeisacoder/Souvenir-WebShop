@@ -295,7 +295,7 @@ public class ProductServiceImpl implements IProductService {
      * {@inheritDoc}
      */
     @Override
-    public Page<Product> findAllPaginated(Pageable pageable) {
+    public Page<Product> findAllPaginated(Pageable pageable) { // findAll(pageable): trả về tất cả sản phẩm theo trang
         return productRepository.findAll(pageable);
     }
 
@@ -334,9 +334,9 @@ public class ProductServiceImpl implements IProductService {
         if (productDetail == null) {
             throw new ResourceNotFoundException("PRODUCT_NOT_FOUND", "No products found in stock");
         }
-        
+
         return productRepository.findById(productDetail.getProductId())
-                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND", 
+                .orElseThrow(() -> new ResourceNotFoundException("PRODUCT_NOT_FOUND",
                         "Product not found with ID: " + productDetail.getProductId()));
     }
 }

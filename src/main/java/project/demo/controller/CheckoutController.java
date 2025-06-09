@@ -1,8 +1,6 @@
 package project.demo.controller;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import project.demo.exception.AddressException;
 import project.demo.exception.CustomerException;
@@ -31,7 +30,6 @@ import project.demo.model.Customer;
 import project.demo.model.Order;
 import project.demo.model.OrderDetail;
 import project.demo.model.OrderTimelineEvent;
-import project.demo.model.Payment;
 import project.demo.model.PaymentMethod;
 import project.demo.service.IAddressService;
 import project.demo.service.ICartService;
@@ -41,6 +39,7 @@ import project.demo.service.IOrderTimelineEventsService;
 import project.demo.service.IPaymentMethodService;
 import project.demo.service.IPaymentService;
 import project.demo.service.IRevenueReportService;
+import project.demo.service.VNPayService;
 import project.demo.util.ValidationErrorMessages;
 
 @Controller
@@ -67,6 +66,9 @@ public class CheckoutController {
     
     @Autowired
     private IOrderTimelineEventsService orderTimelineEventsService;
+
+    @Autowired
+    private VNPayService vnPayService;
 
     private final IRevenueReportService revenueReportService;
 
@@ -135,27 +137,64 @@ public class CheckoutController {
 
     // Step 1: Address Selection
     @GetMapping("/address")
-    public String showAddressStep(Model model, HttpSession session) {
+    public String showAddressStep(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         Customer customer = getCustomerFromSession(session);
         if (customer == null) {
             return "redirect:/auth/login";
         }
 
-        // Get all addresses for the customer
-        List<Address> addresses = addressService.findByCustomerId(customer.getCustomerId());
+        // Validate cart exists and has items - handle converted cart
+        try {
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Check if cart is already converted
+            if ("converted".equals(cart.getStatus())) {
+                // Clear checkout session data since cart is already converted
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            if (cartItems == null || cartItems.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+                return "redirect:/cart";
+            }
+            
+            // Get all addresses for the customer
+            List<Address> addresses = addressService.findByCustomerId(customer.getCustomerId());
 
-        // Get available shipping countries (could be from a service/configuration)
-        List<String> countries = List.of("Việt Nam", "Mỹ", "Trung Quốc", "Nhật Bản", "Hàn Quốc", "Singapore", "Thái Lan");
+            // Get available shipping countries (could be from a service/configuration)
+            List<String> countries = List.of("Việt Nam", "Mỹ", "Trung Quốc", "Nhật Bản", "Hàn Quốc", "Singapore", "Thái Lan");
 
-        // Get selected address from session if available
-        Integer selectedAddressId = (Integer) session.getAttribute("checkoutAddressId");
+            // Get selected address from session if available
+            Integer selectedAddressId = (Integer) session.getAttribute("checkoutAddressId");
 
-        model.addAttribute("addresses", addresses);
-        model.addAttribute("countries", countries);
-        model.addAttribute("customer", customer);
-        model.addAttribute("selectedAddressId", selectedAddressId);
+            model.addAttribute("addresses", addresses);
+            model.addAttribute("countries", countries);
+            model.addAttribute("customer", customer);
+            model.addAttribute("selectedAddressId", selectedAddressId);
+            model.addAttribute("cartItemCount", cartItems.size()); // Add cart info for display
 
-        return "checkout/address";
+            return "checkout/address";
+            
+        } catch (project.demo.exception.CartException e) {
+            if ("INVALID_CART_STATUS".equals(e.getErrorCode())) {
+                // Cart is likely converted - clear session and redirect
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            // Other cart errors
+            redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng không hợp lệ. " + e.getMessage());
+            return "redirect:/cart";
+        }
     }
 
     @PostMapping("/select-address")
@@ -163,6 +202,39 @@ public class CheckoutController {
         Customer customer = getCustomerFromSession(session);
         if (customer == null) {
             return "redirect:/auth/login";
+        }
+
+        // Validate cart exists and has items before proceeding
+        try {
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Check if cart is already converted
+            if ("converted".equals(cart.getStatus())) {
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công.");
+                return "redirect:/account/orders";
+            }
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            if (cartItems == null || cartItems.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+                return "redirect:/cart";
+            }
+            
+        } catch (project.demo.exception.CartException e) {
+            if ("INVALID_CART_STATUS".equals(e.getErrorCode())) {
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công.");
+                return "redirect:/account/orders";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng không hợp lệ. " + e.getMessage());
+            return "redirect:/cart";
         }
 
         // Validate address belongs to customer
@@ -302,46 +374,68 @@ public class CheckoutController {
         // Get available shipping methods (in a real app, this would come from a service)
         List<Map<String, Object>> shippingMethods = getAvailableShippingMethods(shippingAddress);
 
-        // Get cart items and calculate totals
-        Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
-        if (!cartOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
-            return "redirect:/cart";
-        }
-        
-        Cart cart = cartOpt.get();
-        List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
-        
-        // Calculate totals
-        BigDecimal subtotal = calculateSubtotal(cartItems);
-        BigDecimal discount = BigDecimal.ZERO; // Replace with actual discount logic
-        
-        // Get selected shipping method from session if available
-        String selectedShippingMethodId = (String) session.getAttribute("checkoutShippingMethodId");
-        BigDecimal shippingCost = null;
-        
-        if (selectedShippingMethodId != null) {
-            for (Map<String, Object> method : shippingMethods) {
-                if (method.get("id").equals(selectedShippingMethodId)) {
-                    shippingCost = (BigDecimal) method.get("price");
-                    break;
+        // Get cart items and calculate totals - handle converted cart
+        try {
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Check if cart is already converted
+            if ("converted".equals(cart.getStatus())) {
+                // Clear checkout session data since cart is already converted
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            
+            // Calculate totals
+            BigDecimal subtotal = calculateSubtotal(cartItems);
+            BigDecimal discount = BigDecimal.ZERO; // Replace with actual discount logic
+            
+            // Get selected shipping method from session if available
+            String selectedShippingMethodId = (String) session.getAttribute("checkoutShippingMethodId");
+            BigDecimal shippingCost = null;
+            
+            if (selectedShippingMethodId != null) {
+                for (Map<String, Object> method : shippingMethods) {
+                    if (method.get("id").equals(selectedShippingMethodId)) {
+                        shippingCost = (BigDecimal) method.get("price");
+                        break;
+                    }
                 }
             }
+            
+            BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
+
+            model.addAttribute("customer", customer);
+            model.addAttribute("shippingAddress", shippingAddress);
+            model.addAttribute("shippingMethods", shippingMethods);
+            model.addAttribute("selectedShippingMethodId", selectedShippingMethodId);
+            model.addAttribute("cartItems", cartItems);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("discount", discount);
+            model.addAttribute("shippingCost", shippingCost);
+            model.addAttribute("total", total);
+
+            return "checkout/shipping";
+            
+        } catch (project.demo.exception.CartException e) {
+            if ("INVALID_CART_STATUS".equals(e.getErrorCode())) {
+                // Cart is likely converted - clear session and redirect
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            // Other cart errors
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/cart";
         }
-        
-        BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
-
-        model.addAttribute("customer", customer);
-        model.addAttribute("shippingAddress", shippingAddress);
-        model.addAttribute("shippingMethods", shippingMethods);
-        model.addAttribute("selectedShippingMethodId", selectedShippingMethodId);
-        model.addAttribute("cartItems", cartItems);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("discount", discount);
-        model.addAttribute("shippingCost", shippingCost);
-        model.addAttribute("total", total);
-
-        return "checkout/shipping";
     }
 
     @PostMapping("/select-shipping")
@@ -409,15 +503,25 @@ public class CheckoutController {
             }
         }
 
-        // Get cart items and calculate totals
-        Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
-        if (!cartOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
-            return "redirect:/cart";
-        }
-        
-        Cart cart = cartOpt.get();
-        List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+        // Get cart items and calculate totals - handle converted cart
+        try {
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Check if cart is already converted
+            if ("converted".equals(cart.getStatus())) {
+                // Clear checkout session data since cart is already converted
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
         
         // Calculate totals
         BigDecimal subtotal = calculateSubtotal(cartItems);
@@ -428,17 +532,29 @@ public class CheckoutController {
         // Get selected payment method from session if available
         String selectedPaymentMethodId = (String) session.getAttribute("checkoutPaymentMethodId");
 
-        model.addAttribute("customer", customer);
-        model.addAttribute("shippingAddress", shippingAddress);
-        model.addAttribute("shippingMethod", shippingMethod);
-        model.addAttribute("selectedPaymentMethodId", selectedPaymentMethodId);
-        model.addAttribute("cartItems", cartItems);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("discount", discount);
-        model.addAttribute("shippingCost", shippingCost);
-        model.addAttribute("total", total);
+            model.addAttribute("customer", customer);
+            model.addAttribute("shippingAddress", shippingAddress);
+            model.addAttribute("shippingMethod", shippingMethod);
+            model.addAttribute("selectedPaymentMethodId", selectedPaymentMethodId);
+            model.addAttribute("cartItems", cartItems);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("discount", discount);
+            model.addAttribute("shippingCost", shippingCost);
+            model.addAttribute("total", total);
 
-        return "checkout/payment";
+            return "checkout/payment";
+            
+        } catch (project.demo.exception.CartException e) {
+            if ("INVALID_CART_STATUS".equals(e.getErrorCode())) {
+                // Cart is likely converted - clear session and redirect
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            // Other cart errors
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/cart";
+        }
     }
 
     @PostMapping("/select-payment")
@@ -547,39 +663,62 @@ public class CheckoutController {
         // Get payment method details
         Map<String, Object> paymentMethod = getPaymentMethodDetails(paymentMethodId);
 
-        // Get cart items and calculate totals
-        Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
-        if (!cartOpt.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+        // Get cart items and calculate totals - handle converted cart
+        try {
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            
+            // Check if cart is already converted
+            if ("converted".equals(cart.getStatus())) {
+                // Clear checkout session data since cart is already converted
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            
+            // Calculate totals
+            BigDecimal subtotal = calculateSubtotal(cartItems);
+            BigDecimal discount = BigDecimal.ZERO; // Replace with actual discount logic
+            BigDecimal shippingCost = (BigDecimal) shippingMethod.get("price");
+            BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
+
+            model.addAttribute("customer", customer);
+            model.addAttribute("shippingAddress", shippingAddress);
+            model.addAttribute("shippingMethod", shippingMethod);
+            model.addAttribute("paymentMethod", paymentMethod);
+            model.addAttribute("cartItems", cartItems);
+            model.addAttribute("subtotal", subtotal);
+            model.addAttribute("discount", discount);
+            model.addAttribute("shippingCost", shippingCost);
+            model.addAttribute("total", total);
+
+            return "checkout/confirmation";
+            
+        } catch (project.demo.exception.CartException e) {
+            if ("INVALID_CART_STATUS".equals(e.getErrorCode())) {
+                // Cart is likely converted - clear session and redirect
+                clearCheckoutSession(session);
+                redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng của bạn đã được xử lý thành công. Bạn có thể xem chi tiết trong trang đơn hàng.");
+                return "redirect:/account/orders";
+            }
+            // Other cart errors
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/cart";
         }
-        
-        Cart cart = cartOpt.get();
-        List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
-        
-        // Calculate totals
-        BigDecimal subtotal = calculateSubtotal(cartItems);
-        BigDecimal discount = BigDecimal.ZERO; // Replace with actual discount logic
-        BigDecimal shippingCost = (BigDecimal) shippingMethod.get("price");
-        BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
-
-        model.addAttribute("customer", customer);
-        model.addAttribute("shippingAddress", shippingAddress);
-        model.addAttribute("shippingMethod", shippingMethod);
-        model.addAttribute("paymentMethod", paymentMethod);
-        model.addAttribute("cartItems", cartItems);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("discount", discount);
-        model.addAttribute("shippingCost", shippingCost);
-        model.addAttribute("total", total);
-
-        return "checkout/confirmation";
     }
 
     @PostMapping("/confirm")
     public String confirmOrder(@RequestParam(value = "orderNote", required = false) String orderNote,
                               @RequestParam(value = "termsAccepted", defaultValue = "false") boolean termsAccepted,
                               HttpSession session,
+                              HttpServletRequest request,
                               Model model,
                               RedirectAttributes redirectAttributes) {
         System.out.println("=== Starting confirmOrder method ===");
@@ -616,6 +755,83 @@ public class CheckoutController {
                 return "redirect:/checkout/confirmation";
             }
 
+            // Special handling for VNPay - redirect to payment first, create order after successful payment
+            if ("vnpay".equals(paymentMethodId)) {
+                return handleVNPayPayment(session, request, orderNote, addressId, shippingMethodId, customer, redirectAttributes);
+            }
+
+            // For other payment methods, continue with normal flow
+            return processNormalOrder(orderNote, session, model, redirectAttributes, customer, addressId, shippingMethodId, paymentMethodId);
+            
+        } catch (Exception e) {
+            System.err.println("=== Error in confirmOrder method ===");
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
+            return "redirect:/checkout/confirmation";
+        }
+    }
+
+    private String handleVNPayPayment(HttpSession session, HttpServletRequest request, String orderNote, 
+                                     Integer addressId, String shippingMethodId, Customer customer, 
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            // Store order information in session for later creation after successful payment
+            session.setAttribute("vnpay_pending_order_note", orderNote);
+            session.setAttribute("vnpay_pending_address_id", addressId);
+            session.setAttribute("vnpay_pending_shipping_method", shippingMethodId);
+            session.setAttribute("vnpay_pending_customer_id", customer.getCustomerId());
+            
+            // Extend session timeout for VNPay payment process (set to 30 minutes)
+            session.setMaxInactiveInterval(30 * 60);
+            
+            // Calculate order total for VNPay
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            
+            if (cartItems.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng của bạn trống");
+                return "redirect:/cart";
+            }
+            
+            // Calculate totals
+            BigDecimal subtotal = calculateSubtotal(cartItems);
+            BigDecimal discount = BigDecimal.ZERO; // Can be enhanced later
+            BigDecimal shippingCost = getShippingCost(shippingMethodId);
+            BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
+            
+            // Store total in session
+            session.setAttribute("vnpay_pending_total", total);
+            
+            // Generate temporary reference for VNPay transaction (not the actual order ID)
+            String vnpayReference = "VNP" + System.currentTimeMillis();
+            session.setAttribute("vnpay_pending_reference", vnpayReference);
+            
+            // Create VNPay payment URL
+            String clientIP = getClientIP(request);
+            String orderInfo = "Thanh toan don hang qua VNPay - Ref: " + vnpayReference;
+            String paymentUrl = vnPayService.createPaymentUrl(vnpayReference, total.longValue(), orderInfo, clientIP);
+            
+            System.out.println("Redirecting to VNPay payment URL: " + paymentUrl);
+            return "redirect:" + paymentUrl;
+            
+        } catch (Exception e) {
+            System.err.println("Error creating VNPay payment: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi tạo thanh toán VNPay");
+            return "redirect:/checkout/confirmation";
+        }
+    }
+
+    private String processNormalOrder(String orderNote, HttpSession session, Model model, 
+                                    RedirectAttributes redirectAttributes, Customer customer, 
+                                    Integer addressId, String shippingMethodId, String paymentMethodId) {
+        try {
             // Get shipping method details
             System.out.println("Finding shipping method with ID: " + shippingMethodId);
             Map<String, Object> shippingMethod = null;
@@ -635,9 +851,117 @@ public class CheckoutController {
             
             System.out.println("Using shipping method: " + shippingMethod.get("name"));
             
-            // Lưu thông tin phương thức thanh toán vào bảng PaymentMethod trước khi tạo đơn hàng
-            Integer databasePaymentMethodId = null;
+            // Create payment method record
+            Integer databasePaymentMethodId = createPaymentMethodRecord(customer, paymentMethodId, session);
             
+            // Get cart items
+            System.out.println("Finding cart for customer: " + customer.getCustomerId());
+            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
+            if (!cartOpt.isPresent()) {
+                System.out.println("Cart not found for customer: " + customer.getCustomerId());
+                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
+                return "redirect:/cart";
+            }
+            
+            Cart cart = cartOpt.get();
+            System.out.println("Found cart with ID: " + cart.getCartId());
+            
+            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
+            System.out.println("Cart has " + cartItems.size() + " items");
+            
+            if (cartItems.isEmpty()) {
+                System.out.println("Cart is empty");
+                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng của bạn trống");
+                return "redirect:/cart";
+            }
+            
+            // Calculate totals
+            BigDecimal subtotal = calculateSubtotal(cartItems);
+            BigDecimal discount = BigDecimal.ZERO;
+            BigDecimal shippingCost = (BigDecimal) shippingMethod.get("price");
+            BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
+            
+            // Create order
+            Order order = orderService.createFromCart(
+                cart.getCartId(), 
+                addressId, 
+                databasePaymentMethodId, 
+                shippingMethodId,
+                orderNote
+            );
+            
+            if (order == null) {
+                throw new Exception("Order creation returned null");
+            }
+            
+            System.out.println("Order created successfully with ID: " + order.getOrderId());
+            session.setAttribute("orderId", order.getOrderId());
+            
+            // Create payment record if not COD
+            if (!paymentMethodId.equals("cod")) {
+                try {
+                    paymentService.processPayment(order.getOrderId(), databasePaymentMethodId, total.doubleValue());
+                    System.out.println("Payment processed successfully");
+                } catch (Exception e) {
+                    System.err.println("Error processing payment: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            // Clear cart after successful order creation
+            try {
+                System.out.println("Clearing cart: " + cart.getCartId());
+                cartService.clearCart(cart.getCartId());
+                System.out.println("Cart cleared successfully");
+            } catch (Exception e) {
+                System.err.println("Error clearing cart: " + e.getMessage());
+                e.printStackTrace();
+            }
+            
+            // Clear checkout session data
+            clearCheckoutSession(session);
+            System.out.println("Checkout session data cleared");
+            
+            // Set success information for confirmation page
+            model.addAttribute("orderPlaced", true);
+            model.addAttribute("orderId", order.getOrderId());
+            model.addAttribute("messageCode", "POST_SUCCESS");
+            
+            System.out.println("=== Completed normal order successfully ===");
+            return "checkout/confirmation";
+            
+        } catch (Exception e) {
+            System.err.println("Error in processNormalOrder: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
+            return "redirect:/checkout/confirmation";
+        }
+    }
+
+    private BigDecimal getShippingCost(String shippingMethodId) {
+        Map<String, Object> shippingMethod = null;
+        List<Map<String, Object>> shippingMethods = getAvailableShippingMethods(null);
+        for (Map<String, Object> method : shippingMethods) {
+            if (method.get("id").equals(shippingMethodId)) {
+                shippingMethod = method;
+                break;
+            }
+        }
+        return shippingMethod != null ? (BigDecimal) shippingMethod.get("price") : BigDecimal.ZERO;
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
+    }
+
+    private Integer createPaymentMethodRecord(Customer customer, String paymentMethodId, HttpSession session) {
+        Integer databasePaymentMethodId = null;
+        
+        try {
             // Kiểm tra nếu là thẻ tín dụng và có thông tin thẻ trong session
             CardDetails cardDetails = (CardDetails) session.getAttribute("checkoutCardDetails");
             
@@ -710,18 +1034,6 @@ public class CheckoutController {
                 bankTransferMethod = paymentMethodService.save(bankTransferMethod);
                 databasePaymentMethodId = bankTransferMethod.getPaymentMethodId();
                 System.out.println("Saved bank transfer method with ID: " + databasePaymentMethodId);
-            } else if ("momo".equals(paymentMethodId)) {
-                // Tạo phương thức thanh toán MoMo
-                PaymentMethod momoMethod = new PaymentMethod();
-                momoMethod.setCustomerId(customer.getCustomerId());
-                momoMethod.setMethodName("Ví điện tử MoMo");
-                momoMethod.setProvider("MoMo");
-                momoMethod.setDescription("Thanh toán qua ví điện tử MoMo");
-                
-                // Lưu vào cơ sở dữ liệu
-                momoMethod = paymentMethodService.save(momoMethod);
-                databasePaymentMethodId = momoMethod.getPaymentMethodId();
-                System.out.println("Saved MoMo payment method with ID: " + databasePaymentMethodId);
             } else if ("cod".equals(paymentMethodId)) {
                 // Tạo phương thức thanh toán COD
                 PaymentMethod codMethod = new PaymentMethod();
@@ -751,145 +1063,16 @@ public class CheckoutController {
                     }
                 }
             }
-            
-            System.out.println("Using payment method ID: " + databasePaymentMethodId + " for frontend ID: " + paymentMethodId);
-            
-            // Get cart items
-            System.out.println("Finding cart for customer: " + customer.getCustomerId());
-            Optional<Cart> cartOpt = cartService.findByCustomerId(customer.getCustomerId());
-            if (!cartOpt.isPresent()) {
-                System.out.println("Cart not found for customer: " + customer.getCustomerId());
-                redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy giỏ hàng");
-                return "redirect:/cart";
-            }
-            
-            Cart cart = cartOpt.get();
-            System.out.println("Found cart with ID: " + cart.getCartId());
-            
-            List<CartItem> cartItems = cartService.getCartItems(cart.getCartId());
-            System.out.println("Cart has " + cartItems.size() + " items");
-            
-            if (cartItems.isEmpty()) {
-                System.out.println("Cart is empty");
-                redirectAttributes.addFlashAttribute("errorMessage", "Giỏ hàng của bạn trống");
-                return "redirect:/cart";
-            }
-            
-            // Calculate totals
-            BigDecimal subtotal = calculateSubtotal(cartItems);
-            BigDecimal discount = BigDecimal.ZERO; // Replace with actual discount logic
-            BigDecimal shippingCost = (BigDecimal) shippingMethod.get("price");
-            BigDecimal total = calculateTotal(subtotal, discount, shippingCost);
-            
-            System.out.println("Order totals - subtotal: " + subtotal + 
-                              ", discount: " + discount + 
-                              ", shipping: " + shippingCost + 
-                              ", total: " + total);
-            
-            // Create order - using createFromCart method instead of save
-            System.out.println("Creating order from cart: " + cart.getCartId());
-            
-            Order order = null;
-            try {
-                order = orderService.createFromCart(
-                    cart.getCartId(), 
-                    addressId, 
-                    databasePaymentMethodId, 
-                    shippingMethodId,
-                    orderNote
-                );
-                
-                if (order == null) {
-                    throw new Exception("Order creation returned null");
-                }
-                
-                // Order created successfully
-                System.out.println("Order created successfully with ID: " + order.getOrderId());
-                session.setAttribute("orderId", order.getOrderId());
-
-                // Update OrderDetail entries to include the note if provided
-                if (orderNote != null && !orderNote.trim().isEmpty()) {
-                    System.out.println("Updating OrderDetail entries with note: " + orderNote);
-                    List<OrderDetail> orderDetails = orderService.getOrderDetails(order.getOrderId());
-                    for (OrderDetail detail : orderDetails) {
-                        detail.setNote(orderNote);
-                        orderService.updateOrderDetail(detail);
-                    }
-                    System.out.println("Updated " + orderDetails.size() + " OrderDetail entries with note");
-                }
-            } catch (Exception e) {
-                System.err.println("Error creating order: " + e.getMessage());
-                e.printStackTrace();
-                // Chỉ gán messageCode, không gán errorMessage nữa
-                redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
-                return "redirect:/checkout/confirmation";
-            }
-            
-            // Set estimated delivery date based on shipping method
-            LocalDate estimatedDeliveryDate = LocalDate.now().plusDays(
-                    calculateDeliveryDays((String) shippingMethod.get("estimatedDeliveryTime")));
-            System.out.println("Estimated delivery date: " + estimatedDeliveryDate);
-            
-            // Create payment record if not COD
-            if (!paymentMethodId.equals("cod")) {
-                try {
-                    System.out.println("Processing payment for order: " + order.getOrderId());
-                    Payment payment = new Payment();
-                    payment.setOrderId(order.getOrderId());
-                    payment.setPaymentDate(LocalDateTime.now());
-                    payment.setAmount(total);
-                    payment.setPaymentStatus("pending");
-                    payment.setCurrency("VND");
-                    payment.setPaymentMethodId(databasePaymentMethodId);
-                    
-                    // Save note to payment if provided
-                    if (orderNote != null && !orderNote.trim().isEmpty()) {
-                        payment.setNote(orderNote);
-                    }
-                    
-                    // Process payment instead of just saving
-                    paymentService.processPayment(order.getOrderId(), databasePaymentMethodId, total.doubleValue());
-                    System.out.println("Payment processed successfully");
-                } catch (Exception e) {
-                    System.err.println("Error processing payment: " + e.getMessage());
-                    e.printStackTrace();
-                    // Không throw exception, tiếp tục xử lý để tạo đơn hàng
-                }
-            }
-            
-            // Clear cart after successful order creation
-            try {
-                System.out.println("Clearing cart: " + cart.getCartId());
-                cartService.clearCart(cart.getCartId());
-                System.out.println("Cart cleared successfully");
-            } catch (Exception e) {
-                System.err.println("Error clearing cart: " + e.getMessage());
-                e.printStackTrace();
-                // Không throw exception
-            }
-            
-            // Clear checkout session data
-            clearCheckoutSession(session);
-            System.out.println("Checkout session data cleared");
-            
-            // Set success information for confirmation page
-            model.addAttribute("orderPlaced", true);
-            model.addAttribute("orderId", order.getOrderId());
-            // Chỉ gán messageCode, không gán successMessage nữa
-            model.addAttribute("messageCode", "POST_SUCCESS");
-            
-            System.out.println("=== Completed confirmOrder method successfully ===");
-            return "checkout/confirmation";
-            
         } catch (Exception e) {
-            System.err.println("=== Error in confirmOrder method ===");
+            System.err.println("Error creating payment method record: " + e.getMessage());
             e.printStackTrace();
-            // Chỉ gán messageCode, không gán errorMessage nữa
-            redirectAttributes.addFlashAttribute("messageCode", "CONNECT_ERROR");
-            return "redirect:/checkout/confirmation";
+            // Default to COD if there's an error
+            databasePaymentMethodId = 2;
         }
+        
+        return databasePaymentMethodId;
     }
-    
+
     // Helper methods
     private Customer getCustomerFromSession(HttpSession session) {
         Integer customerId = (Integer) session.getAttribute("customerId");
@@ -950,7 +1133,7 @@ public class CheckoutController {
                (paymentMethodId.equals("cod") || 
                 paymentMethodId.equals("bank") || 
                 paymentMethodId.equals("credit") || 
-                paymentMethodId.equals("momo"));
+                paymentMethodId.equals("vnpay"));
     }
     
     private Map<String, Object> getPaymentMethodDetails(String paymentMethodId) {
@@ -970,9 +1153,9 @@ public class CheckoutController {
                 method.put("name", "Thẻ tín dụng/Ghi nợ");
                 method.put("description", "Thanh toán an toàn bằng thẻ tín dụng hoặc thẻ ghi nợ");
                 break;
-            case "momo":
-                method.put("name", "Ví điện tử MoMo");
-                method.put("description", "Thanh toán qua ví điện tử MoMo");
+            case "vnpay":
+                method.put("name", "VNPay");
+                method.put("description", "Thanh toán trực tuyến qua cổng thanh toán VNPay");
                 break;
             default:
                 method.put("name", "Phương thức không xác định");
@@ -992,8 +1175,8 @@ public class CheckoutController {
                 return 3; // ID for Bank transfer method
             case "credit":
                 return 1; // ID for Credit card method
-            case "momo":
-                return 4; // ID for MoMo e-wallet method
+            case "vnpay":
+                return 4; // ID for VNPay method
             default:
                 return null;
         }
@@ -1186,7 +1369,7 @@ public class CheckoutController {
             if (paymentMethod != null) {
                 model.addAttribute("paymentMethod", paymentMethod);
                 
-                if ("momo".equals(paymentMethod) || "vnpay".equals(paymentMethod)) {
+                if ("vnpay".equals(paymentMethod)) {
                     model.addAttribute("redirectToPayment", true);
                     model.addAttribute("paymentProvider", paymentMethod.toUpperCase());
                 }
@@ -1201,5 +1384,12 @@ public class CheckoutController {
             redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
             return "redirect:/account/orders";
         }
+    }
+
+    @GetMapping("/payment-failed")
+    public String showPaymentFailed(Model model, HttpSession session) {
+        // No need to check authentication for payment failure page
+        // Just display the failure page with any error message from flash attributes
+        return "payment/payment-failed";
     }
 }

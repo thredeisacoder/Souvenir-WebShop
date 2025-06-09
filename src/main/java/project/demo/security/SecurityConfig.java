@@ -1,6 +1,5 @@
 package project.demo.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,15 +11,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import project.demo.security.oauth2.CustomOAuth2UserService;
+import project.demo.security.oauth2.OAuth2AuthenticationSuccessHandler;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-        @Autowired
-        private CustomAuthenticationProvider authProvider;
-        
-        @Autowired
-        private CustomAccessDeniedHandler accessDeniedHandler;
+        private final CustomAuthenticationProvider authProvider;
+        private final CustomAccessDeniedHandler accessDeniedHandler;
+
+        private final CustomOAuth2UserService customOAuth2UserService;
+        private final OAuth2AuthenticationSuccessHandler oauth2SuccessHandler;
+
+        public SecurityConfig(CustomAuthenticationProvider authProvider,
+                        CustomAccessDeniedHandler accessDeniedHandler,
+                        CustomOAuth2UserService customOAuth2UserService,
+                        OAuth2AuthenticationSuccessHandler oauth2SuccessHandler) {
+                this.authProvider = authProvider;
+                this.accessDeniedHandler = accessDeniedHandler;
+                this.customOAuth2UserService = customOAuth2UserService;
+                this.oauth2SuccessHandler = oauth2SuccessHandler;
+        }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,21 +41,35 @@ public class SecurityConfig {
                                                 .requestMatchers("/cart/**").authenticated()
                                                 .requestMatchers("/account/**").authenticated()
                                                 .requestMatchers("/checkout/**").authenticated()
+                                                .requestMatchers("/auth/complete-profile").authenticated()
+                                                .requestMatchers("/oauth2/**").permitAll()
                                                 .requestMatchers("/**").permitAll())
                                 .exceptionHandling(exceptions -> exceptions
                                                 .accessDeniedHandler(accessDeniedHandler)
                                                 .authenticationEntryPoint((request, response, authException) -> {
                                                         // Chuyển hướng đến trang đăng nhập với tham số denied
                                                         String redirectUrl = "/auth/login?denied=true";
-                                                        
-                                                        // Lấy đường dẫn hiện tại để có thể chuyển hướng lại sau khi đăng nhập
+
+                                                        // Lấy đường dẫn hiện tại để có thể chuyển hướng lại sau khi
+                                                        // đăng nhập
                                                         String requestUri = request.getRequestURI();
                                                         if (requestUri.startsWith("/cart")) {
-                                                            redirectUrl = "/auth/login?redirect=cart";
+                                                                redirectUrl = "/auth/login?redirect=cart";
                                                         }
-                                                        
+
                                                         response.sendRedirect(redirectUrl);
                                                 }))
+                                .oauth2Login(oauth2 -> oauth2
+                                                .loginPage("/auth/login")
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(customOAuth2UserService))
+                                                .successHandler(oauth2SuccessHandler)
+                                                .failureUrl("/auth/login?error=oauth2"))
+                                .logout(logout -> logout
+                                                .logoutUrl("/logout")
+                                                .logoutSuccessUrl("/")
+                                                .deleteCookies("JSESSIONID")
+                                                .invalidateHttpSession(true))
                                 .csrf(csrf -> csrf.disable())
                                 .addFilterBefore(new SessionAuthenticationFilter(),
                                                 UsernamePasswordAuthenticationFilter.class);

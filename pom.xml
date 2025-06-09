@@ -76,6 +76,18 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Email Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- OAuth2 Client Support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
         <!-- Frontend Libraries -->
         <dependency>
             <groupId>org.webjars</groupId>

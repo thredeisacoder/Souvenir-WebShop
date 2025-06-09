@@ -25,8 +25,8 @@ public class CustomerDirectRepository {
             System.out.println("=== DIRECT SQL INSERT ===");
             System.out.println("Attempting direct SQL insert for customer: " + customer.getEmail());
             
-            String sql = "INSERT INTO Customer (full_name, email, phone_number, password, status) " +
-                        "VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO Customer (full_name, email, phone_number, password, status,join_date) " +
+                        "VALUES (?, ?, ?, ?, ?,?)";
             
             // Execute the insert
             jdbcTemplate.update(
@@ -35,7 +35,8 @@ public class CustomerDirectRepository {
                 customer.getEmail(),
                 customer.getPhoneNumber(),
                 customer.getPassword(),
-                customer.getStatus()
+                customer.getStatus(),
+                customer.getJoinDate() // Assuming joinDate is set in the Customer object
             );
             
             // Get the ID of the newly inserted customer

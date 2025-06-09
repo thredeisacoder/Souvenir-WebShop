@@ -14,7 +14,7 @@ import jakarta.persistence.Transient;
 import project.demo.enums.OrderStatus;
 
 @Entity
-@Table(name = "OrderTimelineEvents", schema = "dbo", catalog = "SouvenirShopDB")
+@Table(name = "OrderTimelineEvents", schema = "dbo", catalog = "SouvenirShopDBUser")
 public class OrderTimelineEvent {
 
     @Id
